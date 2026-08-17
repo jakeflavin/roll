@@ -3,16 +3,27 @@ import { ChevronDown, ChevronLeft, X } from 'lucide-react'
 import { themes } from '../themes'
 import { animations } from '../animations'
 import { sourceById, sources, type SourceId } from '../sources'
+import type { Session } from '../session'
 import type { Settings } from '../useSettings'
+import { BackupControls } from './BackupControls'
 
 type Props = {
   open: boolean
   onClose: () => void
   settings: Settings
   onChange: (next: Settings) => void
+  session: Session
+  onRestore: (settings: Settings, session: Session) => void
 }
 
-export function SettingsDialog({ open, onClose, settings, onChange }: Props) {
+export function SettingsDialog({
+  open,
+  onClose,
+  settings,
+  onChange,
+  session,
+  onRestore,
+}: Props) {
   const ref = useRef<HTMLDialogElement>(null)
   // The drawer has two pages: the settings themselves, and the pool of the selected
   // source. Kept here rather than in app state — it is drawer-local navigation.
@@ -228,6 +239,17 @@ export function SettingsDialog({ open, onClose, settings, onChange }: Props) {
                 </button>
               ))}
             </div>
+          </fieldset>
+
+          <hr className="settings-divider" />
+
+          <fieldset className="settings-group">
+            <legend>Backup</legend>
+            <BackupControls
+              settings={settings}
+              session={session}
+              onRestore={onRestore}
+            />
           </fieldset>
         </>
       )}

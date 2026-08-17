@@ -16,7 +16,7 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [sessionOpen, setSessionOpen] = useState(false)
   const [result, setResult] = useState(readInitialValue)
-  const { session, record, startOver, clear } = useSession()
+  const { session, record, startOver, clear, replace } = useSession()
   const theme = themeById(settings.themeId)
 
   const { sourceId, min, max, bothCases } = settings
@@ -104,6 +104,11 @@ export default function App() {
         onClose={() => setSettingsOpen(false)}
         settings={settings}
         onChange={setSettings}
+        session={session}
+        onRestore={(nextSettings, nextSession) => {
+          setSettings(nextSettings)
+          replace(nextSession)
+        }}
       />
     </div>
   )

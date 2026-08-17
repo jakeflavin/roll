@@ -5,6 +5,7 @@ import {
   loadSession,
   saveSession,
   startCycle,
+  type Session,
   type SessionEntry,
 } from './session'
 
@@ -25,5 +26,7 @@ export function useSession() {
 
   const clear = useCallback(() => setSession(emptySession), [])
 
-  return { session, record, startOver, clear }
+  const replace = useCallback((next: Session) => setSession(next), [])
+
+  return { session, record, startOver, clear, replace }
 }

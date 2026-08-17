@@ -378,6 +378,44 @@ body {
   color: var(--muted);
 }
 
+.backup-row {
+  display: flex;
+  gap: 10px;
+}
+
+.outline-button {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 12px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.outline-button:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.settings-hint.is-error {
+  color: var(--text);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .danger-button {
   width: 100%;
   margin-top: 4px;
