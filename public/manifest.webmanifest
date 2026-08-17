@@ -1,7 +1,7 @@
 {
-  "name": "Roll",
-  "short_name": "Roll",
-  "description": "A simple random picker.",
+  "name": "Hat",
+  "short_name": "Hat",
+  "description": "A simple random picker \u2014 pull a name, a number or an emoji out of a hat.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

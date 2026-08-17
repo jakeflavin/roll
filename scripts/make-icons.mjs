@@ -26,13 +26,22 @@ const GLOWS = [
 
 const INK = [236, 234, 242]
 
-/** Three pips on the diagonal — a die's three, for a picker. */
-const PIPS = [
-  { x: 0.29, y: 0.29 },
-  { x: 0.5, y: 0.5 },
-  { x: 0.71, y: 0.71 },
-]
-const PIP_RADIUS = 0.088
+/**
+ * A top hat, in two rounded rectangles: the crown, and the brim across it. Kept as a
+ * plain silhouette so it still reads at 16px in a browser tab.
+ */
+const CROWN = { x: 0.5, y: 0.455, hw: 0.17, hh: 0.245, r: 0.062 }
+const BRIM = { x: 0.5, y: 0.685, hw: 0.375, hh: 0.052, r: 0.052 }
+/** The ribbon, cut back out of the crown so the hat is not one solid block. */
+const BAND = { x: 0.5, y: 0.575, hw: 0.17, hh: 0.022, r: 0 }
+
+/** Signed distance to a rounded rectangle: negative inside, positive outside. */
+function roundRect(u, v, box) {
+  const dx = Math.abs(u - box.x) - (box.hw - box.r)
+  const dy = Math.abs(v - box.y) - (box.hh - box.r)
+  const outside = Math.hypot(Math.max(dx, 0), Math.max(dy, 0))
+  return outside + Math.min(Math.max(dx, dy), 0) - box.r
+}
 
 const lerp = (a, b, t) => a + (b - a) * t
 const clamp01 = (n) => (n < 0 ? 0 : n > 1 ? 1 : n)
@@ -101,13 +110,12 @@ function render(size) {
         rgb = rgb.map((c, i) => lerp(c, glow.rgb[i], strength))
       }
 
-      // The pips, with a soft edge so they do not look jagged at small sizes.
-      for (const pip of PIPS) {
-        const d = Math.hypot(u - pip.x, v - pip.y)
-        const edge = 1.2 / size
-        const cover = clamp01((PIP_RADIUS - d) / edge)
-        if (cover > 0) rgb = rgb.map((c, i) => lerp(c, INK[i], cover))
-      }
+      // The hat, with a soft edge so it does not look jagged at small sizes.
+      const edge = 1.2 / size
+      const d = Math.min(roundRect(u, v, CROWN), roundRect(u, v, BRIM))
+      let cover = clamp01(-d / edge)
+      cover = Math.min(cover, clamp01(roundRect(u, v, BAND) / edge))
+      if (cover > 0) rgb = rgb.map((c, i) => lerp(c, INK[i], cover))
 
       pixels[y * size + x] = rgb.map((c) => Math.round(clamp01(c / 255) * 255))
     }

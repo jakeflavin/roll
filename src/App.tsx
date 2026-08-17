@@ -133,7 +133,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1 className="app-title">Roll</h1>
+        <h1 className="app-title">Hat</h1>
         <button
           className="icon-button"
           onClick={() => {
