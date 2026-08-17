@@ -1,3 +1,4 @@
+import { isCustomId, type CustomList } from './lists'
 import {
   animals,
   bodyParts,
@@ -9,7 +10,7 @@ import {
   upperLetters,
 } from './data'
 
-export type SourceId =
+export type BuiltInSourceId =
   | 'number'
   | 'emoji'
   | 'animal'
@@ -18,6 +19,9 @@ export type SourceId =
   | 'bodyPart'
   | 'state'
   | 'feeling'
+
+/** Built-in ids, plus `custom:*` for a user's own list. */
+export type SourceId = BuiltInSourceId | string
 
 export type Source = {
   id: SourceId
@@ -53,6 +57,34 @@ export type SourceConfig = {
   bothCases: boolean
 }
 
+/** Every source the picker can offer right now, built-ins first. */
+export function allSources(lists: CustomList[]): Source[] {
+  return [
+    ...sources,
+    ...lists.map((list) => ({ id: list.id, name: list.name, options: list.items })),
+  ]
+}
+
+/**
+ * Identity of the pool a value was drawn from, which keys the no-repeat history. Only
+ * the options that actually shape the pool are included: editing a custom list's items
+ * must not orphan its history, and changing the number range must not reset the
+ * animals'.
+ */
+export function sourceKeyFor({ sourceId, min, max, bothCases }: SourceConfig) {
+  if (sourceId === 'number') return `number:${Math.min(min, max)}:${Math.max(min, max)}`
+  if (sourceId === 'letter') return `letter:${bothCases}`
+  return sourceId
+}
+
+/** Falls back when a shared link or an old setting names a list that is not here. */
+export function resolveSourceId(sourceId: SourceId, lists: CustomList[]): SourceId {
+  if (isCustomId(sourceId)) {
+    return lists.some((list) => list.id === sourceId) ? sourceId : defaultSource.id
+  }
+  return sources.some((s) => s.id === sourceId) ? sourceId : defaultSource.id
+}
+
 /**
  * What the picker actually draws from. `pick` is the value itself; `scrambleChar`
  * feeds the Scramble animation so it churns through characters that belong to the
@@ -83,7 +115,19 @@ function fromList(list: string[]): PickSource {
   }
 }
 
-export function createSource({ sourceId, min, max, bothCases }: SourceConfig): PickSource {
+export function createSource(
+  { sourceId, min, max, bothCases }: SourceConfig,
+  lists: CustomList[] = [],
+): PickSource {
+  if (isCustomId(sourceId)) {
+    const list = lists.find((l) => l.id === sourceId)
+    // An empty list has nothing to give, so it reports as spent rather than crashing.
+    if (!list || list.items.length === 0) {
+      return { pick: () => '', pickExcluding: () => null, scrambleChar: () => ' ', has: () => false }
+    }
+    return fromList(list.items)
+  }
+
   switch (sourceId) {
     case 'emoji':
       // Emoji have no smaller parts to churn through, so Scramble swaps whole glyphs,

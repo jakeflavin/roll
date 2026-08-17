@@ -5,10 +5,11 @@ import { SettingsDialog } from './components/SettingsDialog'
 import { SessionDialog } from './components/SessionDialog'
 import { ShareButton } from './components/ShareButton'
 import { themeById } from './themes'
-import { createSource } from './sources'
+import { allSources, createSource, resolveSourceId, sourceKeyFor } from './sources'
 import { buildShareUrl, readInitialValue, settingsToParams } from './shareUrl'
 import { useSettings } from './useSettings'
 import { useSession } from './useSession'
+import { useLists } from './useLists'
 import { drawnFor } from './session'
 
 export default function App() {
@@ -17,24 +18,33 @@ export default function App() {
   const [sessionOpen, setSessionOpen] = useState(false)
   const [result, setResult] = useState(readInitialValue)
   const { session, record, startOver, clear, replace } = useSession()
+  const {
+    lists,
+    create: createList,
+    update: updateList,
+    remove: removeList,
+    replace: replaceLists,
+  } = useLists()
   const theme = themeById(settings.themeId)
 
-  const { sourceId, min, max, bothCases } = settings
-  // Only the options that actually define the pool, so changing the theme or the
-  // animation does not reseed the value on screen.
-  const sourceKey = `${sourceId}:${min}:${max}:${bothCases}`
+  const { min, max, bothCases } = settings
+  // A list can be deleted, or arrive from a link that this browser has never seen, so
+  // the id is resolved against what actually exists before anything uses it.
+  const sourceId = resolveSourceId(settings.sourceId, lists)
+  const sourceKey = sourceKeyFor({ sourceId, min, max, bothCases })
   const source = useMemo(
-    () => createSource({ sourceId, min, max, bothCases }),
-    [sourceId, min, max, bothCases],
+    () => createSource({ sourceId, min, max, bothCases }, lists),
+    [sourceId, min, max, bothCases, lists],
   )
 
   // Derived from the session rather than held separately, so the history shown and the
   // history used for no-repeat can never disagree.
   const drawn = useMemo(() => drawnFor(session, sourceKey), [session, sourceKey])
 
+  const sourceName = allSources(lists).find((s) => s.id === sourceId)?.name
   const onPick = useCallback(
-    (value: string) => record({ value, sourceId, sourceKey, at: Date.now() }),
-    [record, sourceId, sourceKey],
+    (value: string) => record({ value, sourceId, sourceName, sourceKey, at: Date.now() }),
+    [record, sourceId, sourceName, sourceKey],
   )
   const onStartOver = useCallback(() => startOver(sourceKey), [startOver, sourceKey])
 
@@ -105,9 +115,23 @@ export default function App() {
         settings={settings}
         onChange={setSettings}
         session={session}
-        onRestore={(nextSettings, nextSession) => {
-          setSettings(nextSettings)
+        onRestore={(nextSettings, nextSession, nextLists) => {
+          replaceLists(nextLists)
           replace(nextSession)
+          setSettings(nextSettings)
+        }}
+        lists={lists}
+        onCreateList={() => {
+          // Selecting the new list immediately is the point of making one.
+          const list = createList('My list')
+          setSettings((current) => ({ ...current, sourceId: list.id }))
+        }}
+        onUpdateList={updateList}
+        onDeleteList={(id) => {
+          removeList(id)
+          setSettings((current) =>
+            current.sourceId === id ? { ...current, sourceId: 'number' } : current,
+          )
         }}
       />
     </div>

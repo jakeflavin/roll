@@ -1,4 +1,5 @@
 import { animations, type AnimationId } from './animations'
+import { isCustomId, isList, type CustomList } from './lists'
 import { emptySession, type Session, type SessionEntry } from './session'
 import { sources, type SourceId } from './sources'
 import { themes } from './themes'
@@ -13,15 +14,22 @@ export type Backup = {
   exportedAt: string
   settings: Settings
   session: Session
+  /** Custom lists travel with the backup, so nothing has to be re-entered. */
+  lists: CustomList[]
 }
 
-export function buildBackup(settings: Settings, session: Session): Backup {
+export function buildBackup(
+  settings: Settings,
+  session: Session,
+  lists: CustomList[],
+): Backup {
   return {
     app: 'roll',
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
     settings,
     session,
+    lists,
   }
 }
 
@@ -40,10 +48,12 @@ const asBool = (value: unknown, fallback: boolean) =>
 
 /** Every field is checked against what this build knows, so an edited or older file
  *  degrades to defaults rather than putting the app into a state it cannot render. */
-function coerceSettings(raw: unknown, base: Settings): Settings {
+function coerceSettings(raw: unknown, base: Settings, lists: CustomList[] = []): Settings {
   const r = (raw ?? {}) as Raw
+  const known =
+    sources.some((s) => s.id === r.sourceId) || lists.some((l) => l.id === r.sourceId)
   return {
-    sourceId: sources.some((s) => s.id === r.sourceId) ? (r.sourceId as SourceId) : base.sourceId,
+    sourceId: known ? (r.sourceId as SourceId) : base.sourceId,
     min: asInt(r.min, base.min),
     max: asInt(r.max, base.max),
     bothCases: asBool(r.bothCases, base.bothCases),
@@ -62,7 +72,10 @@ function isEntry(value: unknown): value is SessionEntry {
     typeof e.sourceKey === 'string' &&
     typeof e.at === 'number' &&
     Number.isFinite(e.at) &&
-    sources.some((s) => s.id === e.sourceId)
+    typeof e.sourceId === 'string' &&
+    // Custom lists have generated ids, so an entry from one is valid even though it
+    // matches no built-in source.
+    (isCustomId(e.sourceId) || sources.some((s) => s.id === e.sourceId))
   )
 }
 
@@ -84,6 +97,7 @@ function coerceSession(raw: unknown): Session {
 export type ParsedBackup = {
   settings: Settings
   session: Session
+  lists: CustomList[]
 }
 
 export class BackupError extends Error {}
@@ -102,9 +116,13 @@ export function parseBackup(text: string, base: Settings): ParsedBackup {
     throw new BackupError('That export came from a newer version of Roll.')
   }
 
+  const lists = Array.isArray(data.lists) ? data.lists.filter(isList) : []
   return {
-    settings: coerceSettings(data.settings, base),
+    // Validated against the incoming lists, so a backup whose source is one of its own
+    // custom lists keeps that selection instead of falling back.
+    settings: coerceSettings(data.settings, base, lists),
     session: data.session ? coerceSession(data.session) : emptySession,
+    lists,
   }
 }
 

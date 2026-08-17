@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, ChevronLeft, X } from 'lucide-react'
 import { themes } from '../themes'
 import { animations } from '../animations'
-import { sourceById, sources, type SourceId } from '../sources'
+import { allSources, sources, type SourceId } from '../sources'
+import { isCustomId, type CustomList } from '../lists'
 import type { Session } from '../session'
 import type { Settings } from '../useSettings'
 import { BackupControls } from './BackupControls'
+import { ListEditor } from './ListEditor'
 
 type Props = {
   open: boolean
@@ -13,7 +15,11 @@ type Props = {
   settings: Settings
   onChange: (next: Settings) => void
   session: Session
-  onRestore: (settings: Settings, session: Session) => void
+  onRestore: (settings: Settings, session: Session, lists: CustomList[]) => void
+  lists: CustomList[]
+  onCreateList: () => void
+  onUpdateList: (id: string, patch: Partial<Omit<CustomList, 'id'>>) => void
+  onDeleteList: (id: string) => void
 }
 
 export function SettingsDialog({
@@ -23,11 +29,15 @@ export function SettingsDialog({
   onChange,
   session,
   onRestore,
+  lists,
+  onCreateList,
+  onUpdateList,
+  onDeleteList,
 }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
   // The drawer has two pages: the settings themselves, and the pool of the selected
   // source. Kept here rather than in app state — it is drawer-local navigation.
-  const [showingOptions, setShowingOptions] = useState(false)
+  const [page, setPage] = useState<'main' | 'options' | 'list'>('main')
 
   useEffect(() => {
     const el = ref.current
@@ -35,7 +45,7 @@ export function SettingsDialog({
     if (open && !el.open) el.showModal()
     if (!open && el.open) el.close()
     // Reopening should land on the settings, never on whatever page was last seen.
-    if (open) setShowingOptions(false)
+    if (open) setPage('main')
   }, [open])
 
   // Clamp on commit rather than on every keystroke, so a half-typed number stays editable.
@@ -55,7 +65,23 @@ export function SettingsDialog({
     if (outside) onClose()
   }
 
-  const source = sourceById(settings.sourceId)
+  const available = allSources(lists)
+  const source = available.find((s) => s.id === settings.sourceId) ?? available[0]
+  const editingList = lists.find((l) => l.id === settings.sourceId)
+
+  const header = (title: string, onBack?: () => void) => (
+    <div className="settings-header">
+      {onBack && (
+        <button className="icon-button" onClick={onBack} aria-label="Back to settings">
+          <ChevronLeft size={18} />
+        </button>
+      )}
+      <h2>{title}</h2>
+      <button className="icon-button" onClick={onClose} aria-label="Close settings">
+        <X size={18} />
+      </button>
+    </div>
+  )
 
   return (
     <dialog
@@ -64,21 +90,21 @@ export function SettingsDialog({
       onClose={onClose}
       onClick={onDialogClick}
     >
-      {showingOptions && source.options ? (
+      {page === 'list' && editingList ? (
         <>
-          <div className="settings-header">
-            <button
-              className="icon-button"
-              onClick={() => setShowingOptions(false)}
-              aria-label="Back to settings"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <h2>{source.name}</h2>
-            <button className="icon-button" onClick={onClose} aria-label="Close settings">
-              <X size={18} />
-            </button>
-          </div>
+          {header(editingList.name, () => setPage('main'))}
+          <ListEditor
+            list={editingList}
+            onUpdate={(patch) => onUpdateList(editingList.id, patch)}
+            onDelete={() => {
+              onDeleteList(editingList.id)
+              setPage('main')
+            }}
+          />
+        </>
+      ) : page === 'options' && source.options ? (
+        <>
+          {header(source.name, () => setPage('main'))}
 
           <p className="options-count">{source.options.length} options</p>
           <ul className={`options-list${source.id === 'emoji' ? ' is-emoji' : ''}`}>
@@ -89,12 +115,7 @@ export function SettingsDialog({
         </>
       ) : (
         <>
-          <div className="settings-header">
-            <h2>Settings</h2>
-            <button className="icon-button" onClick={onClose} aria-label="Close settings">
-              <X size={18} />
-            </button>
-          </div>
+          {header('Settings')}
 
           <fieldset className="settings-group">
             <legend>Pick from</legend>
@@ -108,20 +129,42 @@ export function SettingsDialog({
                   onChange({ ...settings, sourceId: e.target.value as SourceId })
                 }
               >
-                {sources.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
+                <optgroup label="Built in">
+                  {sources.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </optgroup>
+                {lists.length > 0 && (
+                  <optgroup label="Your lists">
+                    {lists.map((list) => (
+                      <option key={list.id} value={list.id}>
+                        {list.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
               <ChevronDown className="select-arrow" size={16} aria-hidden="true" />
             </div>
 
-            {source.options && (
-              <button className="link-button" onClick={() => setShowingOptions(true)}>
-                View all {source.options.length} options
+            <div className="link-row">
+              {isCustomId(settings.sourceId) ? (
+                <button className="link-button" onClick={() => setPage('list')}>
+                  Edit this list
+                </button>
+              ) : (
+                source.options && (
+                  <button className="link-button" onClick={() => setPage('options')}>
+                    View all {source.options.length} options
+                  </button>
+                )
+              )}
+              <button className="link-button" onClick={onCreateList}>
+                New list
               </button>
-            )}
+            </div>
           </fieldset>
 
           {/* Options belong to a single source, so they appear only with that source. */}
@@ -248,6 +291,7 @@ export function SettingsDialog({
             <BackupControls
               settings={settings}
               session={session}
+              lists={lists}
               onRestore={onRestore}
             />
           </fieldset>

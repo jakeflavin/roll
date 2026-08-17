@@ -3,6 +3,9 @@ import type { SourceId } from './sources'
 export type SessionEntry = {
   value: string
   sourceId: SourceId
+  /** Captured at pick time, so a row stays labelled after its list is renamed or
+   *  deleted. */
+  sourceName?: string
   /** Pool identity, including range and casing, so exclusion is per pool. */
   sourceKey: string
   at: number

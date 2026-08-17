@@ -1,21 +1,23 @@
 import { useRef, useState } from 'react'
 import { Download, Upload } from 'lucide-react'
 import { BackupError, buildBackup, downloadBackup, parseBackup } from '../backup'
+import type { CustomList } from '../lists'
 import type { Session } from '../session'
 import type { Settings } from '../useSettings'
 
 type Props = {
   settings: Settings
   session: Session
-  onRestore: (settings: Settings, session: Session) => void
+  lists: CustomList[]
+  onRestore: (settings: Settings, session: Session, lists: CustomList[]) => void
 }
 
-export function BackupControls({ settings, session, onRestore }: Props) {
+export function BackupControls({ settings, session, lists, onRestore }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [status, setStatus] = useState<{ text: string; error: boolean } | null>(null)
 
   const onExport = () => {
-    downloadBackup(buildBackup(settings, session))
+    downloadBackup(buildBackup(settings, session, lists))
     setStatus({ text: 'Exported.', error: false })
   }
 
@@ -23,10 +25,13 @@ export function BackupControls({ settings, session, onRestore }: Props) {
     if (!file) return
     try {
       const parsed = parseBackup(await file.text(), settings)
-      onRestore(parsed.settings, parsed.session)
-      const count = parsed.session.entries.length
+      onRestore(parsed.settings, parsed.session, parsed.lists)
+      const picks = parsed.session.entries.length
+      const listCount = parsed.lists.length
       setStatus({
-        text: `Imported settings and ${count} ${count === 1 ? 'pick' : 'picks'}.`,
+        text: `Imported settings, ${picks} ${picks === 1 ? 'pick' : 'picks'}${
+          listCount ? `, and ${listCount} ${listCount === 1 ? 'list' : 'lists'}` : ''
+        }.`,
         error: false,
       })
     } catch (error) {

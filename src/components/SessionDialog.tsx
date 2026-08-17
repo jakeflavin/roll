@@ -61,7 +61,9 @@ export function SessionDialog({ open, onClose, session, onClear }: Props) {
                 {day.entries.map((entry) => (
                   <li key={`${entry.at}-${entry.value}`}>
                     <span className="session-value">{entry.value}</span>
-                    <span className="session-source">{sourceById(entry.sourceId).name}</span>
+                    <span className="session-source">
+                      {entry.sourceName ?? sourceById(entry.sourceId).name}
+                    </span>
                   </li>
                 ))}
               </ul>
