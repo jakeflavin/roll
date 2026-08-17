@@ -6,7 +6,7 @@ import { SessionDialog } from './components/SessionDialog'
 import { ShareButton } from './components/ShareButton'
 import { themeById } from './themes'
 import { allSources, createSource, resolveSourceId, sourceKeyFor } from './sources'
-import { buildShareUrl, readInitialValue, settingsToParams } from './shareUrl'
+import { buildShareUrl, readInitialValues, settingsToParams } from './shareUrl'
 import { useSettings } from './useSettings'
 import { useSession } from './useSession'
 import { useLists } from './useLists'
@@ -18,7 +18,7 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settingsPage, setSettingsPage] = useState<'main' | 'shortcuts'>('main')
   const [sessionOpen, setSessionOpen] = useState(false)
-  const [result, setResult] = useState(readInitialValue)
+  const [results, setResults] = useState<string[]>(readInitialValues)
   const { session, record, startOver, clear, replace } = useSession()
   const {
     lists,
@@ -31,24 +31,42 @@ export default function App() {
 
   const { min, max, bothCases } = settings
   // A list can be deleted, or arrive from a link that this browser has never seen, so
-  // the id is resolved against what actually exists before anything uses it.
-  const sourceId = resolveSourceId(settings.sourceId, lists)
-  const sourceKey = sourceKeyFor({ sourceId, min, max, bothCases })
-  const source = useMemo(
-    () => createSource({ sourceId, min, max, bothCases }, lists),
-    [sourceId, min, max, bothCases, lists],
+  // ids are resolved against what actually exists before anything uses them.
+  const sourceIds = useMemo(
+    () => settings.sourceIds.map((id) => resolveSourceId(id, lists)),
+    [settings.sourceIds, lists],
   )
 
-  // Derived from the session rather than held separately, so the history shown and the
-  // history used for no-repeat can never disagree.
-  const drawn = useMemo(() => drawnFor(session, sourceKey), [session, sourceKey])
+  const slots = useMemo(
+    () =>
+      sourceIds.map((sourceId) => {
+        const sourceKey = sourceKeyFor({ sourceId, min, max, bothCases })
+        return {
+          sourceId,
+          sourceKey,
+          name: allSources(lists).find((s) => s.id === sourceId)?.name ?? 'Pick',
+          source: createSource({ sourceId, min, max, bothCases }, lists),
+          // Derived from the session rather than held separately, so the history shown
+          // and the history used for no-repeat can never disagree.
+          drawn: drawnFor(session, sourceKey),
+        }
+      }),
+    [sourceIds, min, max, bothCases, lists, session],
+  )
 
-  const sourceName = allSources(lists).find((s) => s.id === sourceId)?.name
   const onPick = useCallback(
-    (value: string) => record({ value, sourceId, sourceName, sourceKey, at: Date.now() }),
-    [record, sourceId, sourceName, sourceKey],
+    (sourceId: string, value: string) => {
+      const sourceKey = sourceKeyFor({ sourceId, min, max, bothCases })
+      const sourceName = allSources(lists).find((s) => s.id === sourceId)?.name
+      record({ value, sourceId, sourceName, sourceKey, at: Date.now() })
+    },
+    [record, min, max, bothCases, lists],
   )
-  const onStartOver = useCallback(() => startOver(sourceKey), [startOver, sourceKey])
+
+  const onStartOver = useCallback(
+    (keys: string[]) => keys.forEach((key) => startOver(key)),
+    [startOver],
+  )
 
   // Shortcuts for the app's own chrome. Rolling is handled by the picker, which owns
   // the action; these only open things.
@@ -77,9 +95,9 @@ export default function App() {
   // Keeping the address bar in step means the URL is always shareable as it stands,
   // survives a refresh, and never describes state the app has moved on from.
   useEffect(() => {
-    const params = settingsToParams(settings, result)
+    const params = settingsToParams(settings, results)
     window.history.replaceState(null, '', `${window.location.pathname}?${params}`)
-  }, [settings, result])
+  }, [settings, results])
 
   useEffect(() => {
     const root = document.documentElement
@@ -108,17 +126,15 @@ export default function App() {
 
       <main className="app-main">
         <Picker
-          source={source}
-          sourceKey={sourceKey}
+          slots={slots}
           theme={theme}
           animation={settings.animationId}
           allowRepeat={settings.repeat}
-          drawn={drawn}
           onPick={onPick}
           onStartOver={onStartOver}
-          initialValue={result}
-          onSettle={setResult}
-          leadingAction={<ShareButton url={buildShareUrl(settings, result)} />}
+          initialValues={results}
+          onSettle={setResults}
+          leadingAction={<ShareButton url={buildShareUrl(settings, results)} />}
           trailingAction={
             <button
               className="icon-button"
@@ -154,14 +170,15 @@ export default function App() {
         onCreateList={() => {
           // Selecting the new list immediately is the point of making one.
           const list = createList('My list')
-          setSettings((current) => ({ ...current, sourceId: list.id }))
+          setSettings((current) => ({ ...current, sourceIds: [list.id] }))
         }}
         onUpdateList={updateList}
         onDeleteList={(id) => {
           removeList(id)
-          setSettings((current) =>
-            current.sourceId === id ? { ...current, sourceId: 'number' } : current,
-          )
+          setSettings((current) => {
+            const remaining = current.sourceIds.filter((sid) => sid !== id)
+            return { ...current, sourceIds: remaining.length ? remaining : ['number'] }
+          })
         }}
       />
     </div>

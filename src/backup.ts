@@ -50,10 +50,20 @@ const asBool = (value: unknown, fallback: boolean) =>
  *  degrades to defaults rather than putting the app into a state it cannot render. */
 function coerceSettings(raw: unknown, base: Settings, lists: CustomList[] = []): Settings {
   const r = (raw ?? {}) as Raw
-  const known =
-    sources.some((s) => s.id === r.sourceId) || lists.some((l) => l.id === r.sourceId)
+  const knows = (id: unknown) =>
+    typeof id === 'string' &&
+    (lists.some((l) => l.id === id) || sources.some((s) => s.id === id))
+
+  // Files written before multi-pick carry a single `sourceId` instead of a list.
+  const rawIds = Array.isArray(r.sourceIds)
+    ? r.sourceIds
+    : r.sourceId !== undefined
+      ? [r.sourceId]
+      : []
+  const sourceIds = rawIds.filter(knows) as SourceId[]
+
   return {
-    sourceId: known ? (r.sourceId as SourceId) : base.sourceId,
+    sourceIds: sourceIds.length ? sourceIds : base.sourceIds,
     min: asInt(r.min, base.min),
     max: asInt(r.max, base.max),
     bothCases: asBool(r.bothCases, base.bothCases),

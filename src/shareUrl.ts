@@ -1,5 +1,5 @@
 import { animations, type AnimationId } from './animations'
-import { sources, type SourceId } from './sources'
+import type { SourceId } from './sources'
 import { themes } from './themes'
 // Type-only, so this module and useSettings do not form a runtime import cycle.
 import type { Settings } from './useSettings'
@@ -8,18 +8,20 @@ import type { Settings } from './useSettings'
  * Only the options that apply to the chosen source are written, so a shared emoji
  * link does not carry a number range that has no effect on it.
  */
-export function settingsToParams(settings: Settings, value?: string) {
+export function settingsToParams(settings: Settings, values: string[] = []) {
   const params = new URLSearchParams()
-  params.set('pick', settings.sourceId)
-  // The result rides along, so a refresh or a shared link keeps the value on screen.
-  if (value) params.set('v', value)
-  if (settings.sourceId === 'number') {
+  // Repeated rather than joined: a value like "Nguyen, Anh" would not survive being
+  // split back out of a comma-separated list.
+  for (const id of settings.sourceIds) params.append('pick', id)
+  // The results ride along, so a refresh or a shared link keeps them on screen.
+  for (const value of values) params.append('v', value)
+  if (settings.sourceIds.includes('number')) {
     params.set('min', String(settings.min))
     params.set('max', String(settings.max))
   }
   // Written as an explicit 1/0 rather than omitted when off: an absent flag falls back
   // to the recipient's own default, which would flip a shared "off" back on.
-  if (settings.sourceId === 'letter') params.set('lower', settings.bothCases ? '1' : '0')
+  if (settings.sourceIds.includes('letter')) params.set('lower', settings.bothCases ? '1' : '0')
   params.set('repeat', settings.repeat ? '1' : '0')
   params.set('theme', settings.themeId)
   params.set('anim', settings.animationId)
@@ -36,12 +38,14 @@ function readInt(raw: string | null, fallback: number) {
 
 /** Anything unrecognized falls back, so a hand-edited link can never break the app. */
 export function settingsFromParams(params: URLSearchParams, base: Settings): Settings {
-  const pick = params.get('pick')
+  const picks = params.getAll('pick').filter(Boolean)
   const theme = params.get('theme')
   const anim = params.get('anim')
 
   return {
-    sourceId: sources.some((s) => s.id === pick) ? (pick as SourceId) : base.sourceId,
+    // Custom ids are kept as-is here; whether the list actually exists is resolved
+    // against the stored lists once those are loaded.
+    sourceIds: picks.length ? (picks as SourceId[]) : base.sourceIds,
     min: readInt(params.get('min'), base.min),
     max: readInt(params.get('max'), base.max),
     bothCases: params.has('lower') ? params.get('lower') === '1' : base.bothCases,
@@ -62,13 +66,13 @@ export function readInitialSettings(stored: Settings): Settings {
   return hasShareParams(params) ? settingsFromParams(params, stored) : stored
 }
 
-export function readInitialValue() {
-  return new URLSearchParams(window.location.search).get('v') ?? undefined
+export function readInitialValues() {
+  return new URLSearchParams(window.location.search).getAll('v')
 }
 
-export function buildShareUrl(settings: Settings, value?: string) {
+export function buildShareUrl(settings: Settings, values: string[] = []) {
   const url = new URL(window.location.href)
-  url.search = settingsToParams(settings, value).toString()
+  url.search = settingsToParams(settings, values).toString()
   url.hash = ''
   return url.toString()
 }

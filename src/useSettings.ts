@@ -5,7 +5,8 @@ import { defaultSource, type SourceId } from './sources'
 import { readInitialSettings } from './shareUrl'
 
 export type Settings = {
-  sourceId: SourceId
+  /** One or more pools; a roll takes one value from each, in this order. */
+  sourceIds: SourceId[]
   min: number
   max: number
   /** Letter source only: include a–z alongside A–Z. */
@@ -19,7 +20,7 @@ export type Settings = {
 const STORAGE_KEY = 'roll.settings'
 
 export const defaultSettings: Settings = {
-  sourceId: defaultSource.id,
+  sourceIds: [defaultSource.id],
   min: 1,
   max: 100,
   bothCases: false,
@@ -32,9 +33,24 @@ function load(): Settings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return defaultSettings
-    return { ...defaultSettings, ...JSON.parse(raw) }
+    return migrate(JSON.parse(raw))
   } catch {
     return defaultSettings
+  }
+}
+
+/**
+ * Fills in anything missing, and understands settings saved before multi-pick, which
+ * carry a single `sourceId`. It reads the stored object rather than one already merged
+ * with the defaults, whose `sourceIds` would otherwise mask the older field.
+ */
+export function migrate(stored: Partial<Settings> & { sourceId?: SourceId }): Settings {
+  const { sourceId, ...rest } = stored
+  const ids = Array.isArray(rest.sourceIds) ? rest.sourceIds.filter(Boolean) : []
+  return {
+    ...defaultSettings,
+    ...rest,
+    sourceIds: ids.length ? ids : [sourceId ?? defaultSource.id],
   }
 }
 

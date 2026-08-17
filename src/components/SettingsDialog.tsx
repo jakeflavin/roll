@@ -71,8 +71,13 @@ export function SettingsDialog({
   }
 
   const available = allSources(lists)
-  const source = available.find((s) => s.id === settings.sourceId) ?? available[0]
-  const editingList = lists.find((l) => l.id === settings.sourceId)
+  const [primary, ...extras] = settings.sourceIds
+  const source = available.find((s) => s.id === primary) ?? available[0]
+  const editingList = lists.find((l) => l.id === primary)
+  const unused = available.filter((s) => !settings.sourceIds.includes(s.id))
+
+  const setPrimary = (id: SourceId) =>
+    onChange({ ...settings, sourceIds: [id, ...extras.filter((e) => e !== id)] })
 
   const header = (title: string, onBack?: () => void) => (
     <div className="settings-header">
@@ -145,10 +150,8 @@ export function SettingsDialog({
             <div className="select-wrap">
               <select
                 className="select"
-                value={settings.sourceId}
-                onChange={(e) =>
-                  onChange({ ...settings, sourceId: e.target.value as SourceId })
-                }
+                value={primary}
+                onChange={(e) => setPrimary(e.target.value as SourceId)}
               >
                 <optgroup label="Built in">
                   {sources.map((s) => (
@@ -170,8 +173,51 @@ export function SettingsDialog({
               <ChevronDown className="select-arrow" size={16} aria-hidden="true" />
             </div>
 
+            {extras.length > 0 && (
+              <ul className="chip-list">
+                {extras.map((id) => (
+                  <li key={id}>
+                    <span>{available.find((s) => s.id === id)?.name ?? 'Unknown'}</span>
+                    <button
+                      className="entry-remove"
+                      onClick={() =>
+                        onChange({
+                          ...settings,
+                          sourceIds: settings.sourceIds.filter((sid) => sid !== id),
+                        })
+                      }
+                      aria-label={`Remove ${available.find((s) => s.id === id)?.name}`}
+                    >
+                      <X size={14} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {unused.length > 0 && (
+              <div className="select-wrap add-group">
+                <select
+                  className="select"
+                  value=""
+                  onChange={(e) =>
+                    e.target.value &&
+                    onChange({ ...settings, sourceIds: [...settings.sourceIds, e.target.value] })
+                  }
+                >
+                  <option value="">+ Add another group</option>
+                  {unused.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="select-arrow" size={16} aria-hidden="true" />
+              </div>
+            )}
+
             <div className="link-row">
-              {isCustomId(settings.sourceId) ? (
+              {isCustomId(primary) ? (
                 <button className="link-button" onClick={() => setPage('list')}>
                   Edit this list
                 </button>
@@ -189,7 +235,7 @@ export function SettingsDialog({
           </fieldset>
 
           {/* Options belong to a single source, so they appear only with that source. */}
-          {settings.sourceId === 'number' && (
+          {settings.sourceIds.includes('number') && (
             <fieldset className="settings-group">
               <legend>Number range</legend>
               <div className="range-row">
@@ -215,7 +261,7 @@ export function SettingsDialog({
             </fieldset>
           )}
 
-          {settings.sourceId === 'letter' && (
+          {settings.sourceIds.includes('letter') && (
             <fieldset className="settings-group">
               <legend>Letter case</legend>
               {/* Associated by id rather than nested: a checkbox inside its own label gets
