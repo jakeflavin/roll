@@ -26,7 +26,10 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 24px;
+  /* Installed on a phone the app runs under the status bar and the home indicator, so
+     each edge takes whichever is larger: the app's own padding or the safe area. */
+  padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right))
+    max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
 }
 
 .app-header {
@@ -225,7 +228,8 @@ body {
    told apart. */
 .drawer {
   position: fixed;
-  inset: 12px 12px 12px auto;
+  inset: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom)) auto;
   margin: 0;
   width: min(360px, calc(100vw - 24px));
   /* The dialog UA stylesheet sets height: fit-content, which would ignore the
@@ -270,6 +274,49 @@ body {
   .drawer::backdrop {
     animation: none;
   }
+}
+
+/* Raised above a drawer, so it is centred rather than pinned to an edge. */
+.confirm {
+  width: min(320px, calc(100vw - 48px));
+  padding: 22px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  backdrop-filter: blur(20px);
+}
+
+.confirm::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+}
+
+.confirm h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.confirm p {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.outline-button.is-danger {
+  color: #ff8080;
+  border-color: color-mix(in srgb, #ff8080 45%, transparent);
+}
+
+.outline-button.is-danger:hover {
+  background: color-mix(in srgb, #ff8080 14%, transparent);
 }
 
 .settings-header {

@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { groupByDay, type Session } from '../session'
 import { sourceById } from '../sources'
+import { ConfirmDialog } from './ConfirmDialog'
 
 type Props = {
   open: boolean
@@ -12,6 +13,7 @@ type Props = {
 
 export function SessionDialog({ open, onClose, session, onClear }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
+  const [confirming, setConfirming] = useState(false)
 
   useEffect(() => {
     const el = ref.current
@@ -80,9 +82,23 @@ export function SessionDialog({ open, onClose, session, onClear }: Props) {
 
           {/* Quiet by default: it destroys the history and the no-repeat memory with
               it, so it should not compete with reading the list. */}
-          <button className="link-button is-danger" onClick={onClear}>
+          <button className="link-button is-danger" onClick={() => setConfirming(true)}>
             Clear session
           </button>
+
+          <ConfirmDialog
+            open={confirming}
+            title="Clear this session?"
+            body={`${session.entries.length} past ${
+              session.entries.length === 1 ? 'pick' : 'picks'
+            } will be forgotten, and every group starts repeating from the top.`}
+            confirmLabel="Clear"
+            onConfirm={() => {
+              setConfirming(false)
+              onClear()
+            }}
+            onCancel={() => setConfirming(false)}
+          />
         </>
       )}
     </dialog>

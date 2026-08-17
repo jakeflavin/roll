@@ -91,6 +91,8 @@ export function resolveSourceId(sourceId: SourceId, lists: CustomList[]): Source
  * source rather than always through digits.
  */
 export type PickSource = {
+  /** How many values the pool holds; zero means there is nothing to pick. */
+  size: number
   pick: () => string
   /** A value not in `drawn`, or null when the pool has nothing left to give. */
   pickExcluding: (drawn: Set<string>) => string | null
@@ -105,6 +107,7 @@ function fromList(list: string[]): PickSource {
   // Scrambling uses letters from the list itself, so the churn looks like the words.
   const chars = [...new Set(list.join('').replace(/[^A-Za-z]/g, '').split(''))]
   return {
+    size: list.length,
     pick: () => sample(list),
     pickExcluding: (drawn) => {
       const left = list.filter((value) => !drawn.has(value))
@@ -123,7 +126,13 @@ export function createSource(
     const list = lists.find((l) => l.id === sourceId)
     // An empty list has nothing to give, so it reports as spent rather than crashing.
     if (!list || list.items.length === 0) {
-      return { pick: () => '', pickExcluding: () => null, scrambleChar: () => ' ', has: () => false }
+      return {
+        size: 0,
+        pick: () => '',
+        pickExcluding: () => null,
+        scrambleChar: () => ' ',
+        has: () => false,
+      }
     }
     return fromList(list.items)
   }
@@ -155,6 +164,7 @@ export function createSource(
       const size = hi - lo + 1
       const draw = () => String(Math.floor(Math.random() * size) + lo)
       return {
+        size,
         pick: draw,
         pickExcluding: (drawn) => {
           if (drawn.size >= size) return null

@@ -22,6 +22,9 @@ export type Slot = {
   drawn: Set<string>
 }
 
+/** Shown where a pool has nothing in it, rather than leaving the slot blank. */
+const EMPTY_TEXT = 'No entries yet'
+
 /**
  * Type steps down as slots are added, but gently — the old curve halved it at two
  * slots, which was far smaller than it needed to be. The hard limit on fitting is
@@ -77,6 +80,7 @@ export function Picker({
   if (lastSlotKey.current !== slotKey) {
     lastSlotKey.current = slotKey
     seedsRef.current = slots.map((slot, i) => {
+      if (slot.source.size === 0) return EMPTY_TEXT
       const carried = initialValues[i]
       return carried && slot.source.has(carried) ? carried : slot.source.pick()
     })
@@ -150,6 +154,7 @@ export function Picker({
           <PickedValue
             key={slot.sourceKey}
             target={targets[i] ?? null}
+            emptyLabel={slot.source.size === 0 ? EMPTY_TEXT : undefined}
             runId={runId}
             seed={seedsRef.current[i]}
             source={slot.source}

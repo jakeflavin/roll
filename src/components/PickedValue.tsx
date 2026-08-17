@@ -53,6 +53,8 @@ type Props = {
   animation: AnimationId
   /** Shrinks the type when several values share the stage. */
   scale: number
+  /** Set when the pool is empty, which reads differently from having used it all up. */
+  emptyLabel?: string
   label?: string
   onSettled?: (value: string) => void
 }
@@ -65,6 +67,7 @@ export function PickedValue({
   theme,
   animation,
   scale,
+  emptyLabel,
   label,
   onSettled,
 }: Props) {
@@ -119,7 +122,9 @@ export function PickedValue({
     stop()
 
     if (target === null) {
-      setDisplay(EXHAUSTED_TEXT)
+      // An empty pool never had anything to give, which is not the same as having
+      // worked through everything it had.
+      setDisplay(emptyLabel ?? EXHAUSTED_TEXT)
       return
     }
 

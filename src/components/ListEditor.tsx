@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Plus, Upload, X } from 'lucide-react'
 import { cleanItems, parseCsv, type CustomList } from '../lists'
+import { ConfirmDialog } from './ConfirmDialog'
 
 type Props = {
   list: CustomList
@@ -11,6 +12,7 @@ type Props = {
 export function ListEditor({ list, onUpdate, onDelete }: Props) {
   const [draft, setDraft] = useState('')
   const [status, setStatus] = useState<string | null>(null)
+  const [confirming, setConfirming] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const addItems = (raw: string) => {
@@ -126,9 +128,23 @@ export function ListEditor({ list, onUpdate, onDelete }: Props) {
 
       {/* Quiet, like clearing a session: destructive, so it should not look like the
           ordinary actions above it. */}
-      <button className="link-button is-danger" onClick={onDelete}>
+      <button className="link-button is-danger" onClick={() => setConfirming(true)}>
         Delete list
       </button>
+
+      <ConfirmDialog
+        open={confirming}
+        title={`Delete ${list.name}?`}
+        body={`Its ${list.items.length} ${
+          list.items.length === 1 ? 'entry goes' : 'entries go'
+        } with it. This cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={() => {
+          setConfirming(false)
+          onDelete()
+        }}
+        onCancel={() => setConfirming(false)}
+      />
     </>
   )
 }
