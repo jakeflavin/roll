@@ -173,27 +173,48 @@ export function SettingsDialog({
               <ChevronDown className="select-arrow" size={16} aria-hidden="true" />
             </div>
 
-            {extras.length > 0 && (
-              <ul className="chip-list">
-                {extras.map((id) => (
-                  <li key={id}>
-                    <span>{available.find((s) => s.id === id)?.name ?? 'Unknown'}</span>
-                    <button
-                      className="entry-remove"
-                      onClick={() =>
-                        onChange({
-                          ...settings,
-                          sourceIds: settings.sourceIds.filter((sid) => sid !== id),
-                        })
-                      }
-                      aria-label={`Remove ${available.find((s) => s.id === id)?.name}`}
-                    >
-                      <X size={14} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {/* Each extra group is a dropdown of its own, so it can be changed rather
+                than only removed. Its own id stays in the options; the rest of the
+                selection is filtered out so a group cannot be chosen twice. */}
+            {extras.map((id, i) => (
+              <div className="group-row" key={id}>
+                <div className="select-wrap">
+                  <select
+                    className="select"
+                    value={id}
+                    onChange={(e) =>
+                      onChange({
+                        ...settings,
+                        sourceIds: settings.sourceIds.map((sid, index) =>
+                          index === i + 1 ? (e.target.value as SourceId) : sid,
+                        ),
+                      })
+                    }
+                  >
+                    {available
+                      .filter((s) => s.id === id || !settings.sourceIds.includes(s.id))
+                      .map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      ))}
+                  </select>
+                  <ChevronDown className="select-arrow" size={16} aria-hidden="true" />
+                </div>
+                <button
+                  className="icon-button"
+                  onClick={() =>
+                    onChange({
+                      ...settings,
+                      sourceIds: settings.sourceIds.filter((_, index) => index !== i + 1),
+                    })
+                  }
+                  aria-label={`Remove ${available.find((s) => s.id === id)?.name}`}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ))}
 
             {unused.length > 0 && (
               <div className="select-wrap add-group">
