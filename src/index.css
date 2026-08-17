@@ -42,21 +42,25 @@ body {
 .app-main {
   display: flex;
   flex: 1;
-  align-items: center;
-  justify-content: center;
+  min-height: 0;
 }
 
+/* The picker owns the whole area below the header: the value centers in the space
+   that is left, and the button sits on the bottom edge at the header's width. */
 .picker {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  align-items: center;
-  gap: 40px;
+  gap: 24px;
+  width: 100%;
 }
 
 .picker-stage {
   position: relative;
   display: grid;
+  flex: 1;
   place-items: center;
+  min-height: 0;
   /* Without perspective the flip's rotateX reads as a flat vertical squash. */
   perspective: 1200px;
 }
@@ -113,7 +117,8 @@ body {
 }
 
 .roll-button {
-  padding: 12px 40px;
+  width: 100%;
+  padding: 16px 40px;
   font: inherit;
   font-size: 15px;
   font-weight: 500;
@@ -139,22 +144,27 @@ body {
   cursor: default;
 }
 
+/* Same surface, border, and blur as the roll button, just round instead of a pill. */
 .icon-button {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   color: var(--text);
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
   cursor: pointer;
-  transition: background 120ms ease;
+  backdrop-filter: blur(12px);
+  transition: transform 120ms ease;
 }
 
 .icon-button:hover {
-  background: var(--surface);
-  border-color: var(--border);
+  transform: translateY(-1px);
+}
+
+.icon-button:active {
+  transform: scale(0.94);
 }
 
 /* A drawer that keeps the modal's floating card look: pinned right, inset equally

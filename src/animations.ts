@@ -19,7 +19,7 @@ export const animations: Animation[] = [
     id: 'reveal',
     name: 'Reveal',
     busyLabel: 'Revealing…',
-    description: 'Blurred until you tap it.',
+    description: 'Scatters to dust, reforms.',
   },
   {
     id: 'scramble',
