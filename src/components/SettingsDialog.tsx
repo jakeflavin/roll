@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   ChevronDown,
   ChevronLeft,
@@ -15,6 +15,7 @@ import { isCustomId, type CustomList } from '../lists'
 import type { Session } from '../session'
 import type { Settings } from '../useSettings'
 import { shortcuts } from '../shortcuts'
+import { useDialog } from '../useDialog'
 import { BackupControls } from './BackupControls'
 import { ListEditor } from './ListEditor'
 
@@ -51,7 +52,7 @@ export function SettingsDialog({
   onUpdateList,
   onDeleteList,
 }: Props) {
-  const ref = useRef<HTMLDialogElement>(null)
+  const { ref, onBackdropClick } = useDialog(open, onClose)
   // The drawer has two pages: the settings themselves, and the pool of the selected
   // source. Kept here rather than in app state — it is drawer-local navigation.
   const [page, setPage] = useState<'main' | 'options' | 'list' | 'shortcuts'>('main')
@@ -61,13 +62,8 @@ export function SettingsDialog({
   // Touch devices get no shortcut list; there is nothing to press.
   const hasKeyboard = typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches
 
+  // Reopening should land where the caller asked, never on whatever page was last seen.
   useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    if (open && !el.open) el.showModal()
-    if (!open && el.open) el.close()
-    // Reopening should land where the caller asked, never on whatever page was last
-    // seen.
     if (open) setPage(openTo)
   }, [open, openTo])
 
@@ -76,16 +72,6 @@ export function SettingsDialog({
     const min = Math.min(settings.min, settings.max)
     const max = Math.max(settings.min, settings.max)
     if (min !== settings.min || max !== settings.max) onChange({ ...settings, min, max })
-  }
-
-  // Backdrop clicks are dispatched on the dialog itself, so a hit test against its
-  // box is what separates "clicked the backdrop" from "clicked inside the drawer".
-  const onDialogClick = (e: React.MouseEvent<HTMLDialogElement>) => {
-    if (e.target !== ref.current) return
-    const { top, right, bottom, left } = ref.current.getBoundingClientRect()
-    const outside =
-      e.clientX < left || e.clientX > right || e.clientY < top || e.clientY > bottom
-    if (outside) onClose()
   }
 
   const available = allSources(lists)
@@ -196,7 +182,7 @@ export function SettingsDialog({
       ref={ref}
       className="drawer drawer-settings"
       onClose={onClose}
-      onClick={onDialogClick}
+      onClick={onBackdropClick}
     >
       {page === 'shortcuts' ? (
         <>

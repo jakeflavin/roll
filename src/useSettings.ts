@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
 import { defaultTheme } from './themes'
 import { defaultAnimation, type AnimationId } from './animations'
 import { defaultSource, type SourceId } from './sources'
 import { readInitialSettings } from './shareUrl'
+import { usePersistentState } from './usePersistentState'
 
 export type Settings = {
   /** One or more pools; a roll takes one value from each, in this order. */
@@ -54,13 +54,15 @@ export function migrate(stored: Partial<Settings> & { sourceId?: SourceId }): Se
   }
 }
 
-export function useSettings() {
-  // A shared link's options win over what this browser had stored.
-  const [settings, setSettings] = useState<Settings>(() => readInitialSettings(load()))
-
-  useEffect(() => {
+function save(settings: Settings) {
+  try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
-  }, [settings])
+  } catch {
+    // A full or blocked store should not break picking.
+  }
+}
 
-  return [settings, setSettings] as const
+/** Everything that shapes a roll, persisted, with a shared link's options winning. */
+export function useSettings() {
+  return usePersistentState(() => readInitialSettings(load()), save)
 }

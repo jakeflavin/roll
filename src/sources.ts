@@ -168,22 +168,25 @@ export function createSource(
         pick: draw,
         pickExcluding: (drawn) => {
           if (drawn.size >= size) return null
-          // Small ranges enumerate what is left, which is exact. Large ones retry
-          // instead — building a list of millions to pick one from is not worth it,
-          // and with a range that big the drawn set is far too sparse to collide.
-          if (size <= 100_000) {
-            const left: string[] = []
-            for (let n = lo; n <= hi; n++) {
-              const value = String(n)
-              if (!drawn.has(value)) left.push(value)
-            }
-            return left.length ? sample(left) : null
-          }
-          for (let i = 0; i < 1000; i++) {
+
+          // Drawing at random and retrying is far cheaper than listing the range, and
+          // succeeds on the first go for anything but a nearly spent pool. Listing a
+          // range of 100,000 on every roll to skip a handful of used values was the
+          // alternative.
+          for (let i = 0; i < 40; i++) {
             const value = draw()
             if (!drawn.has(value)) return value
           }
-          return null
+
+          // Retrying has become unreliable, so the pool must be nearly spent: list what
+          // is actually left. Reaching here needs the drawn set to cover most of the
+          // range, which only a small range can manage.
+          const left: string[] = []
+          for (let n = lo; n <= hi; n++) {
+            const value = String(n)
+            if (!drawn.has(value)) left.push(value)
+          }
+          return left.length ? sample(left) : null
         },
         scrambleChar: () => String(Math.floor(Math.random() * 10)),
         has: (value) => {

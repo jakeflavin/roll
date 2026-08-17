@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useDialog } from '../useDialog'
 
 type Props = {
   open: boolean
@@ -15,14 +15,8 @@ type Props = {
  * ask first.
  */
 export function ConfirmDialog({ open, title, body, confirmLabel, onConfirm, onCancel }: Props) {
-  const ref = useRef<HTMLDialogElement>(null)
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    if (open && !el.open) el.showModal()
-    if (!open && el.open) el.close()
-  }, [open])
+  // Cancelling is the safe outcome, so dismissing by any means cancels.
+  const { ref } = useDialog(open, onCancel)
 
   return (
     <dialog ref={ref} className="confirm" onClose={onCancel}>

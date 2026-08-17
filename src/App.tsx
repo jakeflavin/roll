@@ -5,7 +5,13 @@ import { SettingsDialog } from './components/SettingsDialog'
 import { SessionDialog } from './components/SessionDialog'
 import { ShareButton } from './components/ShareButton'
 import { themeById } from './themes'
-import { allSources, createSource, resolveSourceId, sourceKeyFor } from './sources'
+import {
+  allSources,
+  createSource,
+  defaultSource,
+  resolveSourceId,
+  sourceKeyFor,
+} from './sources'
 import { buildShareUrl, readInitialValues, settingsToParams } from './shareUrl'
 import { useSettings } from './useSettings'
 import { useSession } from './useSession'
@@ -19,7 +25,7 @@ export default function App() {
   const [settingsPage, setSettingsPage] = useState<'main' | 'shortcuts'>('main')
   const [sessionOpen, setSessionOpen] = useState(false)
   const [results, setResults] = useState<string[]>(readInitialValues)
-  const { session, record, startOver, clear, replace } = useSession()
+  const { session, record, startOver, clear, replace: replaceSession } = useSession()
   const {
     lists,
     create: createList,
@@ -30,6 +36,15 @@ export default function App() {
   const theme = themeById(settings.themeId)
 
   const { min, max, bothCases } = settings
+
+  // Built once rather than per slot: it concatenates the built-ins with every custom
+  // list, and slots would otherwise rebuild it for each of them.
+  const available = useMemo(() => allSources(lists), [lists])
+  const nameOf = useCallback(
+    (id: string) => available.find((s) => s.id === id)?.name,
+    [available],
+  )
+
   // A list can be deleted, or arrive from a link that this browser has never seen, so
   // ids are resolved against what actually exists before anything uses them.
   const sourceIds = useMemo(
@@ -37,35 +52,38 @@ export default function App() {
     [settings.sourceIds, lists],
   )
 
-  const slots = useMemo(
+  // The pools themselves, which only change when what they draw from changes. Building
+  // one walks its whole list, so this is deliberately kept off the session's path.
+  const pools = useMemo(
     () =>
-      sourceIds.map((sourceId) => {
-        const sourceKey = sourceKeyFor({ sourceId, min, max, bothCases })
-        return {
-          sourceId,
-          sourceKey,
-          name: allSources(lists).find((s) => s.id === sourceId)?.name ?? 'Pick',
-          source: createSource({ sourceId, min, max, bothCases }, lists),
-          // Derived from the session rather than held separately, so the history shown
-          // and the history used for no-repeat can never disagree.
-          drawn: drawnFor(session, sourceKey),
-        }
-      }),
-    [sourceIds, min, max, bothCases, lists, session],
+      sourceIds.map((sourceId) => ({
+        sourceId,
+        sourceKey: sourceKeyFor({ sourceId, min, max, bothCases }),
+        name: nameOf(sourceId) ?? 'Pick',
+        source: createSource({ sourceId, min, max, bothCases }, lists),
+      })),
+    [sourceIds, min, max, bothCases, lists, nameOf],
+  )
+
+  // What each pool has already given out. Derived from the session rather than held
+  // separately, so the history shown and the history used for no-repeat cannot disagree.
+  const slots = useMemo(
+    () => pools.map((pool) => ({ ...pool, drawn: drawnFor(session, pool.sourceKey) })),
+    [pools, session],
   )
 
   const onPick = useCallback(
     (sourceId: string, value: string) => {
       const sourceKey = sourceKeyFor({ sourceId, min, max, bothCases })
-      const sourceName = allSources(lists).find((s) => s.id === sourceId)?.name
-      record({ value, sourceId, sourceName, sourceKey, at: Date.now() })
+      record({ value, sourceId, sourceName: nameOf(sourceId), sourceKey, at: Date.now() })
     },
-    [record, min, max, bothCases, lists],
+    [record, min, max, bothCases, nameOf],
   )
 
   // An empty custom list picks an empty string, which would leave the theme swatches
   // blank, so the fallback covers empty rather than only missing.
   const sample = results[0] || '42'
+  const shareUrl = useMemo(() => buildShareUrl(settings, results), [settings, results])
 
   const onStartOver = useCallback(
     (keys: string[]) => keys.forEach((key) => startOver(key)),
@@ -138,7 +156,7 @@ export default function App() {
           onStartOver={onStartOver}
           initialValues={results}
           onSettle={setResults}
-          leadingAction={<ShareButton url={buildShareUrl(settings, results)} />}
+          leadingAction={<ShareButton url={shareUrl} />}
           trailingAction={
             <button
               className="icon-button"
@@ -172,7 +190,7 @@ export default function App() {
         session={session}
         onRestore={(nextSettings, nextSession, nextLists) => {
           replaceLists(nextLists)
-          replace(nextSession)
+          replaceSession(nextSession)
           setSettings(nextSettings)
         }}
         lists={lists}
@@ -190,7 +208,10 @@ export default function App() {
           removeList(id)
           setSettings((current) => {
             const remaining = current.sourceIds.filter((sid) => sid !== id)
-            return { ...current, sourceIds: remaining.length ? remaining : ['number'] }
+            return {
+              ...current,
+              sourceIds: remaining.length ? remaining : [defaultSource.id],
+            }
           })
         }}
       />

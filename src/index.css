@@ -152,12 +152,6 @@ body {
   font-weight: 500;
 }
 
-.animation-description {
-  font-size: 12px;
-  line-height: 1.35;
-  color: var(--muted);
-}
-
 .picker-actions {
   display: flex;
   align-items: stretch;
@@ -488,11 +482,6 @@ body {
   min-height: 40px;
 }
 
-.link-row {
-  display: flex;
-  gap: 16px;
-}
-
 /* A group is a card: the dropdown names it, the rows beneath configure it. Without
    the card, a dropdown and its settings were indistinguishable from the next group's. */
 .group-card {
@@ -677,23 +666,6 @@ body {
   left: 12px;
 }
 
-.text-input {
-  width: 100%;
-  min-width: 0;
-  padding: 10px 12px;
-  font: inherit;
-  font-size: 15px;
-  color: var(--text);
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-}
-
-.text-input:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 1px;
-}
-
 .outline-button.is-wide {
   width: 100%;
 }
@@ -784,22 +756,6 @@ body {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
-}
-
-.danger-button {
-  width: 100%;
-  padding: 11px 16px;
-  font: inherit;
-  font-size: 14px;
-  color: var(--text);
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.danger-button:hover {
-  background: color-mix(in srgb, var(--text) 8%, transparent);
 }
 
 .options-list {

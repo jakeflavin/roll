@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { X } from 'lucide-react'
 import { groupByDay, type Session } from '../session'
 import { sourceById } from '../sources'
+import { useDialog } from '../useDialog'
 import { ConfirmDialog } from './ConfirmDialog'
 
 type Props = {
@@ -12,25 +13,8 @@ type Props = {
 }
 
 export function SessionDialog({ open, onClose, session, onClear }: Props) {
-  const ref = useRef<HTMLDialogElement>(null)
+  const { ref, onBackdropClick } = useDialog(open, onClose)
   const [confirming, setConfirming] = useState(false)
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    if (open && !el.open) el.showModal()
-    if (!open && el.open) el.close()
-  }, [open])
-
-  // Backdrop clicks are dispatched on the dialog itself, so a hit test against its box
-  // is what separates "clicked the backdrop" from "clicked inside the drawer".
-  const onDialogClick = (e: React.MouseEvent<HTMLDialogElement>) => {
-    if (e.target !== ref.current) return
-    const { top, right, bottom, left } = ref.current.getBoundingClientRect()
-    const outside =
-      e.clientX < left || e.clientX > right || e.clientY < top || e.clientY > bottom
-    if (outside) onClose()
-  }
 
   const days = groupByDay(session.entries)
 
@@ -39,7 +23,7 @@ export function SessionDialog({ open, onClose, session, onClear }: Props) {
       ref={ref}
       className="drawer drawer-session"
       onClose={onClose}
-      onClick={onDialogClick}
+      onClick={onBackdropClick}
     >
       <div className="settings-header">
         <h2>Session</h2>

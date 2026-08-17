@@ -34,6 +34,16 @@ describe('number source', () => {
     expect(source.pickExcluding(drawn)).toBeNull()
   })
 
+  it('finds the last free value rather than giving up on a nearly spent range', () => {
+    // Retrying at random fails often here, so it has to fall back to listing what is
+    // left; returning null would wrongly report the pool as spent.
+    const source = createSource({ ...config, min: 1, max: 60 })
+    const drawn = new Set(Array.from({ length: 59 }, (_, i) => String(i + 1)))
+    for (let attempt = 0; attempt < 50; attempt++) {
+      expect(source.pickExcluding(drawn)).toBe('60')
+    }
+  })
+
   it('still finds a free value in a range too large to enumerate', () => {
     const source = createSource({ ...config, min: 1, max: 5_000_000 })
     const drawn = new Set(['1', '2', '3'])

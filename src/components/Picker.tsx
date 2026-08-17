@@ -74,7 +74,11 @@ export function Picker({
 
   // A slot's seed is whatever fits: the value from the URL if it belongs to this pool,
   // otherwise a fresh pick. Seeds are not draws, so they are never recorded.
-  const slotKey = slots.map((s) => s.sourceKey).join('|')
+  //
+  // Emptiness belongs in the key because a pool's identity does not change when its
+  // entries do: filling an empty custom list would otherwise leave "No entries yet" on
+  // screen until the next roll.
+  const slotKey = slots.map((s) => `${s.sourceKey}:${s.source.size === 0 ? 0 : 1}`).join('|')
   const seedsRef = useRef<string[]>([])
   const lastSlotKey = useRef<string | null>(null)
   if (lastSlotKey.current !== slotKey) {
