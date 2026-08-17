@@ -336,7 +336,7 @@ export function SettingsDialog({
                   setPage('list')
                 }}
               >
-                New list
+                Custom list
               </button>
             </div>
           </fieldset>

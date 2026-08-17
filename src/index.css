@@ -778,6 +778,18 @@ body {
   font-size: 14px;
 }
 
+/* A standalone setting, so it sits on the outer column with the section titles rather
+   than indented with a card's contents — and stands as tall as the controls it sits
+   among, instead of collapsing to the height of the switch. */
+.settings-group.switch-row {
+  min-height: 40px;
+}
+
+.settings-group.switch-row > label {
+  padding-left: 1px;
+  cursor: pointer;
+}
+
 .switch-row label {
   cursor: pointer;
 }

@@ -63,6 +63,10 @@ export default function App() {
     [record, min, max, bothCases, lists],
   )
 
+  // An empty custom list picks an empty string, which would leave the theme swatches
+  // blank, so the fallback covers empty rather than only missing.
+  const sample = results[0] || '42'
+
   const onStartOver = useCallback(
     (keys: string[]) => keys.forEach((key) => startOver(key)),
     [startOver],
@@ -164,7 +168,7 @@ export default function App() {
           setSettingsOpen(false)
           setSessionOpen(true)
         }}
-        sample={results[0] ?? '42'}
+        sample={sample}
         session={session}
         onRestore={(nextSettings, nextSession, nextLists) => {
           replaceLists(nextLists)
