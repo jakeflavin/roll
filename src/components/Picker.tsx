@@ -6,9 +6,12 @@ import { RevealCloud } from './RevealCloud'
 
 const ROLL_MS = 1500
 const SCRAMBLE_MS = 1100
-const FLIP_MS = 620
+const FLIP_MS = 1250
+const FLIP_COUNT = 3
 // Long enough to read as disperse → drift → reform.
 const REVEAL_MS = 1600
+// The tail of the reveal, where the canvas cross-fades into the real text.
+const HANDOFF_MS = 260
 
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min
@@ -17,6 +20,27 @@ function randomInt(min: number, max: number) {
 function randomDigit() {
   return String(Math.floor(Math.random() * 10))
 }
+
+/**
+ * One flip is 0 → -90 (edge-on) → +90 → 0. The jump across the edge-on instant is
+ * invisible, which is what turns a tip-and-return into a continuous card turn.
+ */
+function flipKeyframes(count: number) {
+  const values = [0]
+  const times = [0]
+  const ease: Array<'easeIn' | 'linear' | 'easeOut'> = []
+
+  for (let i = 0; i < count; i++) {
+    const mid = (i + 0.5) / count
+    values.push(-90, 90, 0)
+    times.push(mid, mid + 0.0005, (i + 1) / count)
+    ease.push('easeIn', 'linear', 'easeOut')
+  }
+
+  return { values, times, ease }
+}
+
+const FLIP_FRAMES = flipKeyframes(FLIP_COUNT)
 
 type Props = {
   min: number
@@ -30,6 +54,8 @@ export function Picker({ min, max, theme, animation }: Props) {
   const [busy, setBusy] = useState(false)
   // While set, the value is drawn as a particle cloud on canvas instead of as text.
   const [cloud, setCloud] = useState<{ from: string; to: string } | null>(null)
+  // The final stretch of the reveal, where text and canvas overlap and cross-fade.
+  const [handoff, setHandoff] = useState(false)
   const valueRef = useRef<HTMLDivElement>(null)
   const [metrics, setMetrics] = useState({ font: '', letterSpacing: '', color: '', box: [0, 0] })
   // Bumping this key restarts the settle animation even when the same value repeats.
@@ -45,6 +71,7 @@ export function Picker({ min, max, theme, animation }: Props) {
     timers.current = []
     setFlipping(false)
     setCloud(null)
+    setHandoff(false)
   }
 
   const after = (ms: number, fn: () => void) => {
@@ -110,10 +137,13 @@ export function Picker({ min, max, theme, animation }: Props) {
   }, [min, max, settle])
 
   const runFlip = useCallback(() => {
-    const final = randomInt(min, max)
     setFlipping(true)
-    // Swapping at the midpoint keeps the old number hidden until the card is edge-on.
-    after(FLIP_MS / 2, () => setDisplay(String(final)))
+    // A value swap per flip, each while the card is edge-on, so the card is never
+    // seen changing. The last one lands on the value that is kept.
+    for (let i = 0; i < FLIP_COUNT; i++) {
+      const next = String(randomInt(min, max))
+      after((FLIP_MS * (i + 0.5)) / FLIP_COUNT, () => setDisplay(next))
+    }
     after(FLIP_MS, () => {
       setFlipping(false)
       setBusy(false)
@@ -134,14 +164,19 @@ export function Picker({ min, max, theme, animation }: Props) {
       // Room around the glyphs for the particles to scatter into.
       box: [rect.width * 2, rect.height * 1.9],
     })
-    setCloud({ from: display, to: String(randomInt(min, max)) })
+    const to = String(randomInt(min, max))
+    setCloud({ from: display, to })
+    // Swap in the real text while the particles are all but home, then let the two
+    // cross-fade — cutting from canvas to text at the very end reads as a jump.
+    after(REVEAL_MS - HANDOFF_MS, () => {
+      setDisplay(to)
+      setHandoff(true)
+    })
   }, [min, max, display])
 
   const onCloudDone = useCallback(() => {
-    setCloud((c) => {
-      if (c) setDisplay(c.to)
-      return null
-    })
+    setCloud(null)
+    setHandoff(false)
     setBusy(false)
   }, [])
 
@@ -173,13 +208,19 @@ export function Picker({ min, max, theme, animation }: Props) {
   // Each animation owns both its motion target and the timing that sells it, so they
   // are resolved together rather than as nested ternaries in the JSX.
   const { animate, transition } = (() => {
+    if (cloud) {
+      return {
+        animate: { opacity: handoff ? 1 : 0, scale: 1, filter: 'blur(0px)' },
+        transition: { duration: handoff ? HANDOFF_MS / 1000 : 0, ease: 'linear' as const },
+      }
+    }
     if (flipping) {
       return {
-        animate: { rotateX: [0, -90, -90, 0], scale: [1, 0.94, 0.94, 1] },
+        animate: { rotateX: FLIP_FRAMES.values, opacity: 1 },
         transition: {
           duration: FLIP_MS / 1000,
-          times: [0, 0.45, 0.55, 1],
-          ease: 'easeInOut' as const,
+          times: FLIP_FRAMES.times,
+          ease: FLIP_FRAMES.ease,
         },
       }
     }
@@ -189,10 +230,17 @@ export function Picker({ min, max, theme, animation }: Props) {
         transition: { type: 'spring' as const, stiffness: 380, damping: 18 },
       }
     }
-    // Flip resolves on the card turn itself, so it skips the settle pop.
+    // Flip and Reveal both resolve within their own animation, so a settle pop on top
+    // would be a second, competing motion.
     if (animation === 'flip') {
       return {
         animate: { rotateX: 0, scale: 1, filter: 'blur(0px)' },
+        transition: { duration: 0 },
+      }
+    }
+    if (animation === 'reveal') {
+      return {
+        animate: { opacity: 1, scale: 1, filter: 'blur(0px)' },
         transition: { duration: 0 },
       }
     }
@@ -212,13 +260,12 @@ export function Picker({ min, max, theme, animation }: Props) {
           aria-live="polite"
           animate={animate}
           transition={transition}
-          // The canvas draws the glyphs while the cloud runs; hiding the text avoids
-          // showing the value twice, and keeping it in flow holds the stage's size.
+          // Opacity rather than visibility, so the text can cross-fade with the canvas
+          // while staying in flow and holding the stage's size.
           style={{
             fontFamily: theme.displayFont,
             fontWeight: theme.displayWeight,
             letterSpacing: theme.displayTracking,
-            visibility: cloud ? 'hidden' : 'visible',
           }}
         >
           {display}
@@ -234,6 +281,8 @@ export function Picker({ min, max, theme, animation }: Props) {
             width={metrics.box[0]}
             height={metrics.box[1]}
             durationMs={REVEAL_MS}
+            fadingOut={handoff}
+            fadeMs={HANDOFF_MS}
             onDone={onCloudDone}
           />
         )}

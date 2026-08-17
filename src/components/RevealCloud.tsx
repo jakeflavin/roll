@@ -16,6 +16,9 @@ type Props = {
   width: number
   height: number
   durationMs: number
+  /** Set for the tail of the run, while the real text fades in underneath. */
+  fadingOut: boolean
+  fadeMs: number
   onDone: () => void
 }
 
@@ -44,6 +47,8 @@ export function RevealCloud({
   width,
   height,
   durationMs,
+  fadingOut,
+  fadeMs,
   onDone,
 }: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
@@ -131,7 +136,9 @@ export function RevealCloud({
       // As the digits reform, particles grow and go opaque so the glyphs read solid
       // by the time the real text takes over — otherwise the handoff snaps visibly.
       const reformed = t < DRIFT_UNTIL ? 0 : (t - DRIFT_UNTIL) / (1 - DRIFT_UNTIL)
-      const grown = Math.max(1, Math.round(size * (1 + 1.2 * reformed)))
+      // Deliberately fractional: rounding makes the particles jump a whole pixel at a
+      // time as they grow, which reads as a stutter right at the handoff.
+      const grown = size * (1 + 1.2 * reformed)
 
       for (const p of particles) {
         let x: number
@@ -175,7 +182,12 @@ export function RevealCloud({
       ref={ref}
       className="reveal-canvas"
       aria-hidden="true"
-      style={{ width, height }}
+      style={{
+        width,
+        height,
+        opacity: fadingOut ? 0 : 1,
+        transition: `opacity ${fadeMs}ms linear`,
+      }}
     />
   )
 }
