@@ -61,17 +61,34 @@ export function SettingsDialog({ open, onClose, settings, onChange }: Props) {
       </fieldset>
 
       <fieldset className="settings-group">
-        <legend>Background</legend>
-        <div className="theme-row">
+        <legend>Theme</legend>
+        <div className="theme-grid">
           {themes.map((t) => (
             <button
               key={t.id}
-              className={`theme-swatch${t.id === settings.themeId ? ' is-active' : ''}`}
-              style={{ background: t.background }}
+              className={`theme-option${t.id === settings.themeId ? ' is-active' : ''}`}
               onClick={() => onChange({ ...settings, themeId: t.id })}
-              aria-label={t.name}
               aria-pressed={t.id === settings.themeId}
-            />
+            >
+              <span
+                className="theme-swatch"
+                style={{ background: t.background, borderColor: t.border }}
+              >
+                {/* Two digits so the preview shows the theme's tracking, not just its face. */}
+                <span
+                  className="theme-preview"
+                  style={{
+                    fontFamily: t.displayFont,
+                    fontWeight: t.displayWeight,
+                    letterSpacing: t.displayTracking,
+                    color: t.text,
+                  }}
+                >
+                  42
+                </span>
+              </span>
+              <span className="theme-name">{t.name}</span>
+            </button>
           ))}
         </div>
       </fieldset>

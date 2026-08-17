@@ -80,6 +80,38 @@ export const themes: Theme[] = [
     displayWeight: 600,
     displayTracking: '-0.03em',
   },
+  {
+    id: 'ember',
+    name: 'Ember',
+    background:
+      'radial-gradient(90% 70% at 50% 105%, #f0632a 0%, transparent 55%),' +
+      'radial-gradient(80% 60% at 15% 80%, #a8231f 0%, transparent 60%),' +
+      'radial-gradient(70% 55% at 85% 15%, #3d2418 0%, transparent 62%),' +
+      'linear-gradient(180deg, #17100d 0%, #2a1410 60%, #491c12 100%)',
+    text: '#ffeade',
+    muted: 'rgba(255, 234, 222, 0.58)',
+    surface: 'rgba(38, 20, 16, 0.88)',
+    border: 'rgba(255, 234, 222, 0.16)',
+    displayFont: '"Inter", system-ui, sans-serif',
+    displayWeight: 700,
+    displayTracking: '-0.045em',
+  },
+  {
+    id: 'bloom',
+    name: 'Bloom',
+    background:
+      'radial-gradient(95% 75% at 20% 10%, #ffe3f0 0%, transparent 60%),' +
+      'radial-gradient(105% 85% at 85% 25%, #e6ddff 0%, transparent 62%),' +
+      'radial-gradient(115% 95% at 50% 100%, #fff1dd 0%, transparent 60%),' +
+      'linear-gradient(150deg, #fdeef6 0%, #f0eaff 55%, #fff6ea 100%)',
+    text: '#43254a',
+    muted: 'rgba(67, 37, 74, 0.55)',
+    surface: 'rgba(255, 255, 255, 0.85)',
+    border: 'rgba(67, 37, 74, 0.14)',
+    displayFont: '"Instrument Serif", Georgia, serif',
+    displayWeight: 400,
+    displayTracking: '-0.02em',
+  },
 ]
 
 export const defaultTheme = themes.find((t) => t.id === 'mint')!
