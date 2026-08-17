@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown, ChevronLeft, X } from 'lucide-react'
+import { ChevronDown, ChevronLeft, Keyboard, X } from 'lucide-react'
 import { themes } from '../themes'
 import { animations } from '../animations'
 import { allSources, sources, type SourceId } from '../sources'
 import { isCustomId, type CustomList } from '../lists'
 import type { Session } from '../session'
 import type { Settings } from '../useSettings'
+import { shortcuts } from '../shortcuts'
 import { BackupControls } from './BackupControls'
 import { ListEditor } from './ListEditor'
 
 type Props = {
   open: boolean
+  /** Which page to land on when opened; the shortcut for help jumps straight in. */
+  openTo?: 'main' | 'shortcuts'
   onClose: () => void
   settings: Settings
   onChange: (next: Settings) => void
@@ -24,6 +27,7 @@ type Props = {
 
 export function SettingsDialog({
   open,
+  openTo = 'main',
   onClose,
   settings,
   onChange,
@@ -37,16 +41,17 @@ export function SettingsDialog({
   const ref = useRef<HTMLDialogElement>(null)
   // The drawer has two pages: the settings themselves, and the pool of the selected
   // source. Kept here rather than in app state — it is drawer-local navigation.
-  const [page, setPage] = useState<'main' | 'options' | 'list'>('main')
+  const [page, setPage] = useState<'main' | 'options' | 'list' | 'shortcuts'>('main')
 
   useEffect(() => {
     const el = ref.current
     if (!el) return
     if (open && !el.open) el.showModal()
     if (!open && el.open) el.close()
-    // Reopening should land on the settings, never on whatever page was last seen.
-    if (open) setPage('main')
-  }, [open])
+    // Reopening should land where the caller asked, never on whatever page was last
+    // seen.
+    if (open) setPage(openTo)
+  }, [open, openTo])
 
   // Clamp on commit rather than on every keystroke, so a half-typed number stays editable.
   const commitRange = () => {
@@ -90,7 +95,23 @@ export function SettingsDialog({
       onClose={onClose}
       onClick={onDialogClick}
     >
-      {page === 'list' && editingList ? (
+      {page === 'shortcuts' ? (
+        <>
+          {header('Shortcuts', () => setPage('main'))}
+          <ul className="shortcut-list">
+            {shortcuts.map((shortcut) => (
+              <li key={shortcut.label}>
+                <span>{shortcut.label}</span>
+                <span className="shortcut-keys">
+                  {shortcut.keys.map((key) => (
+                    <kbd key={key}>{key}</kbd>
+                  ))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : page === 'list' && editingList ? (
         <>
           {header(editingList.name, () => setPage('main'))}
           <ListEditor
@@ -285,6 +306,14 @@ export function SettingsDialog({
           </fieldset>
 
           <hr className="settings-divider" />
+
+          <fieldset className="settings-group">
+            <legend>Keyboard</legend>
+            <button className="outline-button is-wide" onClick={() => setPage('shortcuts')}>
+              <Keyboard size={15} aria-hidden="true" />
+              View shortcuts
+            </button>
+          </fieldset>
 
           <fieldset className="settings-group">
             <legend>Backup</legend>

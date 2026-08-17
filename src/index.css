@@ -410,6 +410,41 @@ body {
   margin-top: 10px;
 }
 
+.shortcut-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shortcut-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 2px;
+  font-size: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.shortcut-list li:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.shortcut-keys {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+
+.shortcut-keys kbd {
+  padding: 3px 8px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
 .entry-list {
   margin: 0;
   padding: 0;

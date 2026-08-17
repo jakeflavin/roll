@@ -10,11 +10,13 @@ import { buildShareUrl, readInitialValue, settingsToParams } from './shareUrl'
 import { useSettings } from './useSettings'
 import { useSession } from './useSession'
 import { useLists } from './useLists'
+import { isDrawerOpen, isTypingTarget } from './shortcuts'
 import { drawnFor } from './session'
 
 export default function App() {
   const [settings, setSettings] = useSettings()
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [settingsPage, setSettingsPage] = useState<'main' | 'shortcuts'>('main')
   const [sessionOpen, setSessionOpen] = useState(false)
   const [result, setResult] = useState(readInitialValue)
   const { session, record, startOver, clear, replace } = useSession()
@@ -48,6 +50,30 @@ export default function App() {
   )
   const onStartOver = useCallback(() => startOver(sourceKey), [startOver, sourceKey])
 
+  // Shortcuts for the app's own chrome. Rolling is handled by the picker, which owns
+  // the action; these only open things.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      if (isTypingTarget(e.target) || isDrawerOpen()) return
+
+      if (e.key === '?') {
+        e.preventDefault()
+        setSettingsPage('shortcuts')
+        setSettingsOpen(true)
+      } else if (e.key.toLowerCase() === 's') {
+        e.preventDefault()
+        setSettingsPage('main')
+        setSettingsOpen(true)
+      } else if (e.key.toLowerCase() === 'h') {
+        e.preventDefault()
+        setSessionOpen(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   // Keeping the address bar in step means the URL is always shareable as it stands,
   // survives a refresh, and never describes state the app has moved on from.
   useEffect(() => {
@@ -70,7 +96,10 @@ export default function App() {
         <h1 className="app-title">Roll</h1>
         <button
           className="icon-button"
-          onClick={() => setSettingsOpen(true)}
+          onClick={() => {
+            setSettingsPage('main')
+            setSettingsOpen(true)
+          }}
           aria-label="Open settings"
         >
           <SettingsIcon size={20} />
@@ -111,6 +140,7 @@ export default function App() {
 
       <SettingsDialog
         open={settingsOpen}
+        openTo={settingsPage}
         onClose={() => setSettingsOpen(false)}
         settings={settings}
         onChange={setSettings}

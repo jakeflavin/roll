@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import type { Theme } from '../themes'
 import { animationById, type AnimationId } from '../animations'
 import type { PickSource } from '../sources'
+import { isDrawerOpen, isTypingTarget, targetElement } from '../shortcuts'
 import { RevealCloud } from './RevealCloud'
 
 const ROLL_MS = 1500
@@ -311,8 +312,10 @@ export function Picker({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== ' ' && e.key !== 'Enter') return
-      const target = e.target as HTMLElement
-      if (target.closest('input, button, dialog')) return
+      if (isDrawerOpen() || isTypingTarget(e.target)) return
+      // A focused button already activates on Space and Enter; handling it here as
+      // well would roll twice for one press.
+      if (targetElement(e.target)?.closest('button')) return
       e.preventDefault()
       roll()
     }
