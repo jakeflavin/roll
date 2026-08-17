@@ -270,9 +270,10 @@ export function PickedValue({
             fontFamily: theme.displayFont,
             fontWeight: theme.displayWeight,
             letterSpacing: theme.displayTracking,
-            // Long values would run off screen at the size a two-digit number wants, so
-            // the type shrinks as the value grows and as slots are added.
-            fontSize: `calc(var(--display-size) * ${fitScale(display) * scale})`,
+            // Three caps, whichever is smallest: the base size, a reduction for long
+            // values, and the share of the stage's height this slot can occupy — the
+            // last is what keeps every slot on screen however many there are.
+            fontSize: `min(calc(var(--display-size) * ${(fitScale(display) * scale).toFixed(3)}), calc(42cqh / var(--slots)))`,
           }}
         >
           {display}

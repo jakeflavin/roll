@@ -65,11 +65,10 @@ export function BackupControls({ settings, session, lists, onRestore }: Props) {
         />
       </div>
 
-      <p className={`settings-hint${status?.error ? ' is-error' : ''}`}>
-        {status
-          ? status.text
-          : 'Everything, including past picks. Importing replaces what is here now.'}
-      </p>
+      {/* Only speaks when there is something to report. */}
+      {status && (
+        <p className={`settings-hint${status.error ? ' is-error' : ''}`}>{status.text}</p>
+      )}
     </>
   )
 }

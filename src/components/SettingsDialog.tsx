@@ -47,6 +47,9 @@ export function SettingsDialog({
   // The drawer has two pages: the settings themselves, and the pool of the selected
   // source. Kept here rather than in app state — it is drawer-local navigation.
   const [page, setPage] = useState<'main' | 'options' | 'list' | 'shortcuts'>('main')
+  // Which group a sub-page is about, now that any row can open one.
+  const [editing, setEditing] = useState<SourceId | null>(null)
+  const [viewing, setViewing] = useState<SourceId | null>(null)
   // Touch devices get no shortcut list; there is nothing to press.
   const hasKeyboard = typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches
 
@@ -78,13 +81,92 @@ export function SettingsDialog({
   }
 
   const available = allSources(lists)
-  const [primary, ...extras] = settings.sourceIds
-  const source = available.find((s) => s.id === primary) ?? available[0]
-  const editingList = lists.find((l) => l.id === primary)
   const unused = available.filter((s) => !settings.sourceIds.includes(s.id))
+  const editingList = lists.find((l) => l.id === (editing ?? settings.sourceIds[0]))
+  const source =
+    available.find((s) => s.id === (viewing ?? settings.sourceIds[0])) ?? available[0]
 
-  const setPrimary = (id: SourceId) =>
-    onChange({ ...settings, sourceIds: [id, ...extras.filter((e) => e !== id)] })
+  /** Everything about one group lives under that group's own row: its options, and the
+   *  way into its contents. With several groups selected there is then nothing to work
+   *  out about which heading applies to which. */
+  const groupOptions = (id: SourceId) => {
+    const group = available.find((s) => s.id === id)
+    const blocks = []
+
+    if (id === 'number') {
+      blocks.push(
+        <div className="group-options" key="range">
+          <label>
+            Min
+            <input
+              type="number"
+              value={settings.min}
+              onChange={(e) => onChange({ ...settings, min: Number(e.target.value) })}
+              onBlur={commitRange}
+            />
+          </label>
+          <label>
+            Max
+            <input
+              type="number"
+              value={settings.max}
+              onChange={(e) => onChange({ ...settings, max: Number(e.target.value) })}
+              onBlur={commitRange}
+            />
+          </label>
+        </div>,
+      )
+    }
+
+    if (id === 'letter') {
+      blocks.push(
+        // Associated by id rather than nested: a checkbox inside its own label gets the
+        // click twice — once directly, once forwarded — and lands back where it started.
+        <div className="group-options" key="case">
+          <label htmlFor="both-cases">Include lowercase</label>
+          <input
+            id="both-cases"
+            type="checkbox"
+            role="switch"
+            checked={settings.bothCases}
+            onChange={(e) => onChange({ ...settings, bothCases: e.target.checked })}
+          />
+        </div>,
+      )
+    }
+
+    if (isCustomId(id)) {
+      blocks.push(
+        <div className="group-options" key="edit">
+          <button
+            className="outline-button"
+            onClick={() => {
+              setEditing(id)
+              setPage('list')
+            }}
+          >
+            Edit entries
+          </button>
+        </div>,
+      )
+    } else if (group?.options) {
+      blocks.push(
+        <div className="group-options" key="see">
+          <button
+            className="outline-button"
+            onClick={() => {
+              setViewing(id)
+              setPage('options')
+            }}
+          >
+            See all {group.options.length}
+          </button>
+        </div>,
+      )
+    }
+
+    return blocks
+  }
 
   const header = (title: string, onBack?: () => void) => (
     <div className="settings-header">
@@ -152,74 +234,66 @@ export function SettingsDialog({
 
           <fieldset className="settings-group">
             <legend>Pick from</legend>
-            {/* The native arrow sits hard against the control's edge and cannot be
-                moved, so it is replaced by one we can place and theme. */}
-            <div className="select-wrap">
-              <select
-                className="select"
-                value={primary}
-                onChange={(e) => setPrimary(e.target.value as SourceId)}
-              >
-                <optgroup label="Built in">
-                  {sources.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </optgroup>
-                {lists.length > 0 && (
-                  <optgroup label="Your lists">
-                    {lists.map((list) => (
-                      <option key={list.id} value={list.id}>
-                        {list.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-              </select>
-              <ChevronDown className="select-arrow" size={16} aria-hidden="true" />
-            </div>
-
-            {/* Each extra group is a dropdown of its own, so it can be changed rather
-                than only removed. Its own id stays in the options; the rest of the
-                selection is filtered out so a group cannot be chosen twice. */}
-            {extras.map((id, i) => (
-              <div className="group-row" key={id}>
-                <div className="select-wrap">
-                  <select
-                    className="select"
-                    value={id}
-                    onChange={(e) =>
-                      onChange({
-                        ...settings,
-                        sourceIds: settings.sourceIds.map((sid, index) =>
-                          index === i + 1 ? (e.target.value as SourceId) : sid,
-                        ),
-                      })
-                    }
-                  >
-                    {available
-                      .filter((s) => s.id === id || !settings.sourceIds.includes(s.id))
-                      .map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                  </select>
-                  <ChevronDown className="select-arrow" size={16} aria-hidden="true" />
+            {/* Every group is the same kind of row, so their right edges line up and
+                any of them can be removed. Each dropdown offers its own group plus
+                whatever is unselected, so nothing can be chosen twice. */}
+            {settings.sourceIds.map((id, i) => (
+              <div className="group-stack" key={`${id}-${i}`}>
+                <div className="group-row">
+                  {/* The native arrow sits hard against the control's edge and cannot
+                      be moved, so it is replaced by one we can place and theme. */}
+                  <div className="select-wrap">
+                    <select
+                      className="select"
+                      value={id}
+                      onChange={(e) =>
+                        onChange({
+                          ...settings,
+                          sourceIds: settings.sourceIds.map((sid, index) =>
+                            index === i ? (e.target.value as SourceId) : sid,
+                          ),
+                        })
+                      }
+                    >
+                      <optgroup label="Built in">
+                        {sources
+                          .filter((s) => s.id === id || !settings.sourceIds.includes(s.id))
+                          .map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.name}
+                            </option>
+                          ))}
+                      </optgroup>
+                      {lists.length > 0 && (
+                        <optgroup label="Your lists">
+                          {lists
+                            .filter((l) => l.id === id || !settings.sourceIds.includes(l.id))
+                            .map((list) => (
+                              <option key={list.id} value={list.id}>
+                                {list.name}
+                              </option>
+                            ))}
+                        </optgroup>
+                      )}
+                    </select>
+                    <ChevronDown className="select-arrow" size={16} aria-hidden="true" />
+                  </div>
+                  {settings.sourceIds.length > 1 && (
+                    <button
+                      className="icon-button"
+                      onClick={() =>
+                        onChange({
+                          ...settings,
+                          sourceIds: settings.sourceIds.filter((_, index) => index !== i),
+                        })
+                      }
+                      aria-label={`Remove ${available.find((s) => s.id === id)?.name}`}
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
                 </div>
-                <button
-                  className="icon-button"
-                  onClick={() =>
-                    onChange({
-                      ...settings,
-                      sourceIds: settings.sourceIds.filter((_, index) => index !== i + 1),
-                    })
-                  }
-                  aria-label={`Remove ${available.find((s) => s.id === id)?.name}`}
-                >
-                  <X size={16} />
-                </button>
+                {groupOptions(id)}
               </div>
             ))}
 
@@ -244,69 +318,20 @@ export function SettingsDialog({
               </div>
             )}
 
-            <div className="button-grid">
-              {isCustomId(primary) ? (
-                <button className="outline-button" onClick={() => setPage('list')}>
-                  Edit this list
-                </button>
-              ) : (
-                source.options && (
-                  <button className="outline-button" onClick={() => setPage('options')}>
-                    See all {source.options.length}
-                  </button>
-                )
-              )}
-              <button className="outline-button" onClick={onCreateList}>
-                New list
-              </button>
-            </div>
+            <button
+              className="outline-button is-wide"
+              onClick={() => {
+                onCreateList()
+                // The new list takes the first slot, and is what the editor should show.
+                setEditing(null)
+                // Straight into the editor: a new list is empty, so leaving the user on
+                // this page makes the button look like it did nothing.
+                setPage('list')
+              }}
+            >
+              New list
+            </button>
           </fieldset>
-
-          {/* Options belong to a single source, so they appear only with that source. */}
-          {settings.sourceIds.includes('number') && (
-            <fieldset className="settings-group">
-              <legend>Number range</legend>
-              <div className="range-row">
-                <label>
-                  Min
-                  <input
-                    type="number"
-                    value={settings.min}
-                    onChange={(e) => onChange({ ...settings, min: Number(e.target.value) })}
-                    onBlur={commitRange}
-                  />
-                </label>
-                <label>
-                  Max
-                  <input
-                    type="number"
-                    value={settings.max}
-                    onChange={(e) => onChange({ ...settings, max: Number(e.target.value) })}
-                    onBlur={commitRange}
-                  />
-                </label>
-              </div>
-            </fieldset>
-          )}
-
-          {settings.sourceIds.includes('letter') && (
-            <fieldset className="settings-group">
-              <legend>Letter case</legend>
-              {/* Associated by id rather than nested: a checkbox inside its own label gets
-                  the click twice — once directly, once forwarded — and lands back where
-                  it started. */}
-              <div className="switch-row">
-                <label htmlFor="both-cases">Include lowercase</label>
-                <input
-                  id="both-cases"
-                  type="checkbox"
-                  role="switch"
-                  checked={settings.bothCases}
-                  onChange={(e) => onChange({ ...settings, bothCases: e.target.checked })}
-                />
-              </div>
-            </fieldset>
-          )}
 
           {/* A row rather than a titled group: the label on the switch says the whole
               thing, so a heading above it would only repeat itself. */}
@@ -372,9 +397,6 @@ export function SettingsDialog({
                 </button>
               ))}
             </div>
-            <p className="settings-hint">
-              {animations.find((a) => a.id === settings.animationId)?.description}
-            </p>
           </fieldset>
 
           <hr className="settings-divider" />

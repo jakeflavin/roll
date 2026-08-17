@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
 import { animationById, animationDuration, type AnimationId } from '../animations'
 import type { PickSource } from '../sources'
 import type { Theme } from '../themes'
@@ -15,8 +22,14 @@ export type Slot = {
   drawn: Set<string>
 }
 
-/** Type shrinks as slots are added, so three values still fit the stage. */
-const SCALES = [1, 0.5, 0.36, 0.28]
+/**
+ * Type steps down as slots are added, but gently — the old curve halved it at two
+ * slots, which was far smaller than it needed to be. The hard limit on fitting is
+ * handled in CSS, which can see the stage's real height.
+ */
+function slotScale(count: number) {
+  return count <= 1 ? 1 : Math.max(0.34, 1 / (1 + 0.45 * (count - 1)))
+}
 
 type Props = {
   slots: Slot[]
@@ -126,11 +139,13 @@ export function Picker({
 
   const meta = animationById(animation)
   const everySlotSpent = exhausted.length > 0 && exhausted.every(Boolean)
-  const scale = SCALES[Math.min(slots.length, SCALES.length) - 1]
+  const scale = slotScale(slots.length)
 
   return (
     <div className="picker">
-      <div className="picker-slots">
+      {/* --slots lets the stylesheet cap each value against the stage's own height, so
+          adding groups shrinks the type rather than pushing any of it out of view. */}
+      <div className="picker-slots" style={{ '--slots': slots.length } as CSSProperties}>
         {slots.map((slot, i) => (
           <PickedValue
             key={slot.sourceKey}

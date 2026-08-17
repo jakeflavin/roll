@@ -173,9 +173,13 @@ export default function App() {
         }}
         lists={lists}
         onCreateList={() => {
-          // Selecting the new list immediately is the point of making one.
+          // The new list takes the first slot and keeps the rest of the selection —
+          // making a list should not silently discard the other groups.
           const list = createList('My list')
-          setSettings((current) => ({ ...current, sourceIds: [list.id] }))
+          setSettings((current) => ({
+            ...current,
+            sourceIds: [list.id, ...current.sourceIds.slice(1)],
+          }))
         }}
         onUpdateList={updateList}
         onDeleteList={(id) => {
