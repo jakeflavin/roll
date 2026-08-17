@@ -308,19 +308,18 @@ export function SettingsDialog({
             </fieldset>
           )}
 
-          <fieldset className="settings-group">
-            <legend>Repeat picks</legend>
-            <div className="switch-row">
-              <label htmlFor="repeat">Allow the same answer twice</label>
-              <input
-                id="repeat"
-                type="checkbox"
-                role="switch"
-                checked={settings.repeat}
-                onChange={(e) => onChange({ ...settings, repeat: e.target.checked })}
-              />
-            </div>
-          </fieldset>
+          {/* A row rather than a titled group: the label on the switch says the whole
+              thing, so a heading above it would only repeat itself. */}
+          <div className="settings-group switch-row">
+            <label htmlFor="repeat">Repeat picks</label>
+            <input
+              id="repeat"
+              type="checkbox"
+              role="switch"
+              checked={settings.repeat}
+              onChange={(e) => onChange({ ...settings, repeat: e.target.checked })}
+            />
+          </div>
 
           {/* Everything above changes what gets picked; everything below changes how it
               looks. The rule keeps the two from reading as one long list. */}
