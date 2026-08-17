@@ -2,9 +2,8 @@ export type AnimationId = 'roll' | 'reveal' | 'scramble' | 'flip' | 'confetti' |
 
 export type Animation = {
   id: AnimationId
-  /** Also the roll button's label, so the button names the action in play. */
+  /** Shown on its card in settings; the roll button's label never changes. */
   name: string
-  busyLabel: string
   description: string
 }
 
@@ -12,37 +11,31 @@ export const animations: Animation[] = [
   {
     id: 'roll',
     name: 'Roll',
-    busyLabel: 'Rolling…',
     description: 'Flicks past, slows to a stop.',
   },
   {
     id: 'reveal',
     name: 'Reveal',
-    busyLabel: 'Revealing…',
     description: 'Scatters to dust, reforms.',
   },
   {
     id: 'scramble',
     name: 'Scramble',
-    busyLabel: 'Scrambling…',
     description: 'Locks in one spot at a time.',
   },
   {
     id: 'flip',
     name: 'Flip',
-    busyLabel: 'Flipping…',
     description: 'The card turns over.',
   },
   {
     id: 'confetti',
     name: 'Confetti',
-    busyLabel: 'Celebrating…',
     description: 'Lands, then throws confetti.',
   },
   {
     id: 'fireworks',
     name: 'Fireworks',
-    busyLabel: 'Celebrating…',
     description: 'Lands, then sets off fireworks.',
   },
 ]

@@ -7,7 +7,6 @@ import {
   type ReactNode,
 } from 'react'
 import {
-  animationById,
   animationDuration,
   isCelebration,
   type AnimationId,
@@ -186,7 +185,6 @@ export function Picker({
     onSettleRef.current?.(next)
   }
 
-  const meta = animationById(animation)
   const everySlotSpent = exhausted.length > 0 && exhausted.every(Boolean)
   const scale = slotScale(slots.length)
 
@@ -235,7 +233,7 @@ export function Picker({
       <div className="picker-actions">
         <div className="picker-tools">{tools}</div>
         <button className="roll-button" onClick={roll} disabled={busy}>
-          {busy ? meta.busyLabel : everySlotSpent ? 'Start over' : meta.name}
+          {busy ? 'Rolling…' : everySlotSpent ? 'Start over' : 'Roll'}
         </button>
       </div>
     </div>
