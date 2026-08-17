@@ -254,26 +254,89 @@ body {
   color: var(--muted);
 }
 
-.source-grid {
+.select {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* The popup list is drawn by the OS, so its options need a readable background of
+   their own rather than the drawer's translucent surface. */
+.select option {
+  color: #1c1c1e;
+  background: #fff;
+}
+
+.link-button {
+  margin-top: 10px;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  color: var(--text);
+}
+
+.settings-divider {
+  height: 0;
+  margin: 4px 0 20px;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.options-count {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.options-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.options-list li {
+  padding: 10px 2px;
+  font-size: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.options-list li:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+/* Emoji have no width to speak of, so a row each wastes the drawer — they wrap as
+   pills instead, while worded options stay a scannable list. */
+.options-list.is-emoji {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.chip {
-  padding: 8px 14px;
-  font: inherit;
-  font-size: 13px;
-  color: var(--text);
-  background: transparent;
+.options-list.is-emoji li {
+  padding: 6px 10px;
+  font-size: 22px;
+  line-height: 1;
   border: 1px solid var(--border);
   border-radius: 999px;
-  cursor: pointer;
 }
 
-.chip.is-active {
-  outline: 2px solid var(--text);
-  outline-offset: 1px;
+.options-list.is-emoji li:last-child {
+  border-bottom: 1px solid var(--border);
 }
 
 .switch-row {

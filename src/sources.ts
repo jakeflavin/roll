@@ -22,20 +22,29 @@ export type SourceId =
 export type Source = {
   id: SourceId
   name: string
+  /**
+   * The pool, for sources whose contents are worth browsing. Left off where the
+   * options are already obvious from the name — numbers, letters, and US states.
+   */
+  options?: string[]
 }
 
 export const sources: Source[] = [
   { id: 'number', name: 'Number' },
   { id: 'letter', name: 'Letter' },
-  { id: 'emoji', name: 'Emoji' },
-  { id: 'color', name: 'Color' },
-  { id: 'animal', name: 'Animal' },
-  { id: 'feeling', name: 'Feeling' },
-  { id: 'bodyPart', name: 'Body part' },
+  { id: 'emoji', name: 'Emoji', options: emoji },
+  { id: 'color', name: 'Color', options: colors },
+  { id: 'animal', name: 'Animal', options: animals },
+  { id: 'feeling', name: 'Feeling', options: feelings },
+  { id: 'bodyPart', name: 'Body part', options: bodyParts },
   { id: 'state', name: 'US state' },
 ]
 
 export const defaultSource = sources[0]
+
+export function sourceById(id: SourceId): Source {
+  return sources.find((s) => s.id === id) ?? defaultSource
+}
 
 export type SourceConfig = {
   sourceId: SourceId

@@ -25,7 +25,7 @@ export const animations: Animation[] = [
     id: 'scramble',
     name: 'Scramble',
     busyLabel: 'Scrambling…',
-    description: 'Digits lock in one at a time.',
+    description: 'Locks in one spot at a time.',
   },
   {
     id: 'flip',
