@@ -53,8 +53,15 @@ type Props = {
   animation: AnimationId
   /** When false, values are drawn without replacement until the pool runs dry. */
   allowRepeat: boolean
-  /** Sits to the left of the roll button, on the same bottom row. */
+  /** Already used this cycle, owned by the session so it survives source switches. */
+  drawn: Set<string>
+  /** A value that stuck, and so counts as used. */
+  onPick: (value: string) => void
+  /** Begin a fresh cycle for this pool, once everything has been used. */
+  onStartOver: () => void
+  /** Sit either side of the roll button, on the same bottom row. */
   leadingAction?: ReactNode
+  trailingAction?: ReactNode
   /** A value carried in from the URL, used only if it belongs to the current source. */
   initialValue?: string
   /** Fires for values that stick, never for the frames an animation passes through. */
@@ -67,16 +74,17 @@ export function Picker({
   theme,
   animation,
   allowRepeat,
+  drawn,
+  onPick,
+  onStartOver,
   leadingAction,
+  trailingAction,
   initialValue,
   onSettle,
 }: Props) {
   const [display, setDisplay] = useState(() =>
     initialValue && source.has(initialValue) ? initialValue : source.pick(),
   )
-  // Everything drawn in the current run. A seeded value — on mount, or after switching
-  // source — is not a pick, so it is not recorded and can still come up.
-  const drawn = useRef(new Set<string>())
   const [exhausted, setExhausted] = useState(false)
   // Held in a ref so the animation callbacks are not rebuilt, and mid-run timers are
   // not stranded, every time the source object's identity changes.
@@ -86,14 +94,17 @@ export function Picker({
   settleRef.current = onSettle
   const allowRepeatRef = useRef(allowRepeat)
   allowRepeatRef.current = allowRepeat
+  const drawnRef = useRef(drawn)
+  drawnRef.current = drawn
+  const pickRef = useRef(onPick)
+  pickRef.current = onPick
 
-  // The next value to land on, or null when the pool has nothing left. Only the value
-  // that sticks is recorded — the frames an animation passes through are not draws.
+  // The next value to land on, or null when the pool has nothing left. Recording is
+  // left to the caller: only a value that sticks counts, never the frames an animation
+  // passes through, and a seeded value is not a pick at all.
   const nextValue = () => {
     if (allowRepeatRef.current) return sourceRef.current.pick()
-    const value = sourceRef.current.pickExcluding(drawn.current)
-    if (value !== null) drawn.current.add(value)
-    return value
+    return sourceRef.current.pickExcluding(drawnRef.current)
   }
 
   const [busy, setBusy] = useState(false)
@@ -134,7 +145,8 @@ export function Picker({
     }
     seededFor.current = sourceKey
     stop()
-    drawn.current.clear()
+    // History is not cleared here: switching pools and coming back must still exclude
+    // what that pool already gave out, which is the whole point of the session.
     setExhausted(false)
     const next = sourceRef.current.pick()
     setDisplay(next)
@@ -157,9 +169,13 @@ export function Picker({
   useEffect(() => {
     if (lastAllowRepeat.current === allowRepeat) return
     lastAllowRepeat.current = allowRepeat
-    drawn.current.clear()
     setExhausted(false)
   }, [allowRepeat])
+
+  // Clearing the session from its own view must lift an exhausted state here too.
+  useEffect(() => {
+    if (drawn.size === 0) setExhausted(false)
+  }, [drawn])
 
   useEffect(() => stop, [])
 
@@ -168,6 +184,7 @@ export function Picker({
     setSettleKey((k) => k + 1)
     setBusy(false)
     settleRef.current?.(final)
+    pickRef.current(final)
   }, [])
 
   const runRoll = useCallback((final: string) => {
@@ -222,6 +239,7 @@ export function Picker({
       setFlipping(false)
       setBusy(false)
       settleRef.current?.(final)
+      pickRef.current(final)
     })
   }, [])
 
@@ -251,6 +269,7 @@ export function Picker({
       setDisplay(to)
       setHandoff(true)
       settleRef.current?.(to)
+      pickRef.current(to)
     })
   }, [display])
 
@@ -263,14 +282,17 @@ export function Picker({
   const roll = useCallback(() => {
     if (busy) return
 
-    // Starting over rolls straight away, rather than clearing the message and making
-    // the user press again to see a value.
+    let final: string | null
     if (exhausted) {
-      drawn.current.clear()
+      // Starting over begins a fresh cycle and rolls in the same press, rather than
+      // clearing the message and making the user press again to see a value.
+      onStartOver()
       setExhausted(false)
+      final = sourceRef.current.pick()
+    } else {
+      final = nextValue()
     }
 
-    const final = nextValue()
     if (final === null) {
       // Nothing left to pick, so the display says so instead of showing a value.
       setExhausted(true)
@@ -284,7 +306,7 @@ export function Picker({
     else if (animation === 'reveal') runReveal(final)
     else runRoll(final)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [busy, exhausted, animation, runRoll, runScramble, runFlip, runReveal])
+  }, [busy, exhausted, animation, onStartOver, runRoll, runScramble, runFlip, runReveal])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -392,6 +414,7 @@ export function Picker({
         <button className="roll-button" onClick={roll} disabled={busy}>
           {busy ? meta.busyLabel : exhausted ? 'Start over' : meta.name}
         </button>
+        {trailingAction}
       </div>
     </div>
   )

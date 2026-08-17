@@ -47,7 +47,12 @@ export function SettingsDialog({ open, onClose, settings, onChange }: Props) {
   const source = sourceById(settings.sourceId)
 
   return (
-    <dialog ref={ref} className="settings" onClose={onClose} onClick={onDialogClick}>
+    <dialog
+      ref={ref}
+      className="drawer drawer-settings"
+      onClose={onClose}
+      onClick={onDialogClick}
+    >
       {showingOptions && source.options ? (
         <>
           <div className="settings-header">
