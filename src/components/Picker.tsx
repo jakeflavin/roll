@@ -35,6 +35,9 @@ function flipKeyframes(count: number) {
 
 const FLIP_FRAMES = flipKeyframes(FLIP_COUNT)
 
+/** Shown in place of a value once the whole pool has been used. */
+const EXHAUSTED_TEXT = 'All picked'
+
 /** Values up to this many characters render at full size; longer ones scale down. */
 const FULL_SIZE_CHARS = 5
 
@@ -48,6 +51,8 @@ type Props = {
   sourceKey: string
   theme: Theme
   animation: AnimationId
+  /** When false, values are drawn without replacement until the pool runs dry. */
+  allowRepeat: boolean
   /** Sits to the left of the roll button, on the same bottom row. */
   leadingAction?: ReactNode
   /** A value carried in from the URL, used only if it belongs to the current source. */
@@ -61,6 +66,7 @@ export function Picker({
   sourceKey,
   theme,
   animation,
+  allowRepeat,
   leadingAction,
   initialValue,
   onSettle,
@@ -68,12 +74,28 @@ export function Picker({
   const [display, setDisplay] = useState(() =>
     initialValue && source.has(initialValue) ? initialValue : source.pick(),
   )
+  // Everything drawn in the current run. A seeded value — on mount, or after switching
+  // source — is not a pick, so it is not recorded and can still come up.
+  const drawn = useRef(new Set<string>())
+  const [exhausted, setExhausted] = useState(false)
   // Held in a ref so the animation callbacks are not rebuilt, and mid-run timers are
   // not stranded, every time the source object's identity changes.
   const sourceRef = useRef(source)
   sourceRef.current = source
   const settleRef = useRef(onSettle)
   settleRef.current = onSettle
+  const allowRepeatRef = useRef(allowRepeat)
+  allowRepeatRef.current = allowRepeat
+
+  // The next value to land on, or null when the pool has nothing left. Only the value
+  // that sticks is recorded — the frames an animation passes through are not draws.
+  const nextValue = () => {
+    if (allowRepeatRef.current) return sourceRef.current.pick()
+    const value = sourceRef.current.pickExcluding(drawn.current)
+    if (value !== null) drawn.current.add(value)
+    return value
+  }
+
   const [busy, setBusy] = useState(false)
   // While set, the value is drawn as a particle cloud on canvas instead of as text.
   const [cloud, setCloud] = useState<{ from: string; to: string } | null>(null)
@@ -112,6 +134,8 @@ export function Picker({
     }
     seededFor.current = sourceKey
     stop()
+    drawn.current.clear()
+    setExhausted(false)
     const next = sourceRef.current.pick()
     setDisplay(next)
     settleRef.current?.(next)
@@ -126,6 +150,17 @@ export function Picker({
     setBusy(false)
   }, [animation])
 
+  // Toggling the mode starts a fresh run rather than inheriting a history the user
+  // could not see being collected. Only an actual change counts, so StrictMode's
+  // repeated effects cannot wipe a run in progress.
+  const lastAllowRepeat = useRef(allowRepeat)
+  useEffect(() => {
+    if (lastAllowRepeat.current === allowRepeat) return
+    lastAllowRepeat.current = allowRepeat
+    drawn.current.clear()
+    setExhausted(false)
+  }, [allowRepeat])
+
   useEffect(() => stop, [])
 
   const settle = useCallback((final: string) => {
@@ -135,13 +170,13 @@ export function Picker({
     settleRef.current?.(final)
   }, [])
 
-  const runRoll = useCallback(() => {
+  const runRoll = useCallback((final: string) => {
     const start = performance.now()
     let lastSwap = 0
 
     const tick = (now: number) => {
       const t = (now - start) / ROLL_MS
-      if (t >= 1) return settle(sourceRef.current.pick())
+      if (t >= 1) return settle(final)
       // Swaps start fast and stretch out cubically, so the reel reads as slowing down.
       if (now - lastSwap >= 40 + 300 * t ** 3) {
         lastSwap = now
@@ -153,8 +188,7 @@ export function Picker({
     frame.current = requestAnimationFrame(tick)
   }, [settle])
 
-  const runScramble = useCallback(() => {
-    const final = sourceRef.current.pick()
+  const runScramble = useCallback((final: string) => {
     const chars = [...final]
     const start = performance.now()
 
@@ -174,24 +208,24 @@ export function Picker({
     frame.current = requestAnimationFrame(tick)
   }, [settle])
 
-  const runFlip = useCallback(() => {
+  const runFlip = useCallback((final: string) => {
     setFlipping(true)
-    // A value swap per flip, each while the card is edge-on, so the card is never
-    // seen changing. The last one lands on the value that is kept.
-    let last = ''
-    for (let i = 0; i < FLIP_COUNT; i++) {
+    // A value swap per flip, each while the card is edge-on, so the card is never seen
+    // changing. The turns before the last are just for show, so they are drawn freely
+    // rather than consumed from the pool.
+    for (let i = 0; i < FLIP_COUNT - 1; i++) {
       const next = sourceRef.current.pick()
-      last = next
       after((FLIP_MS * (i + 0.5)) / FLIP_COUNT, () => setDisplay(next))
     }
+    after((FLIP_MS * (FLIP_COUNT - 0.5)) / FLIP_COUNT, () => setDisplay(final))
     after(FLIP_MS, () => {
       setFlipping(false)
       setBusy(false)
-      settleRef.current?.(last)
+      settleRef.current?.(final)
     })
   }, [])
 
-  const runReveal = useCallback(() => {
+  const runReveal = useCallback((to: string) => {
     const el = valueRef.current
     if (!el) return
     const style = getComputedStyle(el)
@@ -210,7 +244,6 @@ export function Picker({
         Math.min(rect.height * 1.9, stage?.height ?? rect.height),
       ],
     })
-    const to = sourceRef.current.pick()
     setCloud({ from: display, to })
     // Swap in the real text while the particles are all but home, then let the two
     // cross-fade — cutting from canvas to text at the very end reads as a jump.
@@ -230,12 +263,28 @@ export function Picker({
   const roll = useCallback(() => {
     if (busy) return
 
+    // Starting over rolls straight away, rather than clearing the message and making
+    // the user press again to see a value.
+    if (exhausted) {
+      drawn.current.clear()
+      setExhausted(false)
+    }
+
+    const final = nextValue()
+    if (final === null) {
+      // Nothing left to pick, so the display says so instead of showing a value.
+      setExhausted(true)
+      setDisplay(EXHAUSTED_TEXT)
+      return
+    }
+
     setBusy(true)
-    if (animation === 'scramble') runScramble()
-    else if (animation === 'flip') runFlip()
-    else if (animation === 'reveal') runReveal()
-    else runRoll()
-  }, [busy, animation, runRoll, runScramble, runFlip, runReveal])
+    if (animation === 'scramble') runScramble(final)
+    else if (animation === 'flip') runFlip(final)
+    else if (animation === 'reveal') runReveal(final)
+    else runRoll(final)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busy, exhausted, animation, runRoll, runScramble, runFlip, runReveal])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -341,7 +390,7 @@ export function Picker({
       <div className="picker-actions">
         {leadingAction}
         <button className="roll-button" onClick={roll} disabled={busy}>
-          {busy ? meta.busyLabel : meta.name}
+          {busy ? meta.busyLabel : exhausted ? 'Start over' : meta.name}
         </button>
       </div>
     </div>

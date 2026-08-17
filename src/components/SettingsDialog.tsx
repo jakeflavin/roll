@@ -154,6 +154,23 @@ export function SettingsDialog({ open, onClose, settings, onChange }: Props) {
             </fieldset>
           )}
 
+          <fieldset className="settings-group">
+            <legend>Repeats</legend>
+            <div className="switch-row">
+              <label htmlFor="repeat">Repeat</label>
+              <input
+                id="repeat"
+                type="checkbox"
+                role="switch"
+                checked={settings.repeat}
+                onChange={(e) => onChange({ ...settings, repeat: e.target.checked })}
+              />
+            </div>
+            <p className="settings-hint">
+              Off, each option comes up once until they have all been used.
+            </p>
+          </fieldset>
+
           {/* Everything above changes what gets picked; everything below changes how it
               looks. The rule keeps the two from reading as one long list. */}
           <hr className="settings-divider" />

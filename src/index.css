@@ -372,6 +372,14 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+.settings-hint {
+  margin: 10px 0 0;
+  padding-left: 1px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
 .switch-row {
   display: flex;
   align-items: center;

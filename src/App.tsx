@@ -58,6 +58,7 @@ export default function App() {
           sourceKey={sourceKey}
           theme={theme}
           animation={settings.animationId}
+          allowRepeat={settings.repeat}
           initialValue={result}
           onSettle={setResult}
           leadingAction={<ShareButton url={buildShareUrl(settings, result)} />}

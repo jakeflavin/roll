@@ -17,7 +17,10 @@ export function settingsToParams(settings: Settings, value?: string) {
     params.set('min', String(settings.min))
     params.set('max', String(settings.max))
   }
-  if (settings.sourceId === 'letter' && settings.bothCases) params.set('lower', '1')
+  // Written as an explicit 1/0 rather than omitted when off: an absent flag falls back
+  // to the recipient's own default, which would flip a shared "off" back on.
+  if (settings.sourceId === 'letter') params.set('lower', settings.bothCases ? '1' : '0')
+  params.set('repeat', settings.repeat ? '1' : '0')
   params.set('theme', settings.themeId)
   params.set('anim', settings.animationId)
   return params
@@ -42,13 +45,16 @@ export function settingsFromParams(params: URLSearchParams, base: Settings): Set
     min: readInt(params.get('min'), base.min),
     max: readInt(params.get('max'), base.max),
     bothCases: params.has('lower') ? params.get('lower') === '1' : base.bothCases,
+    repeat: params.has('repeat') ? params.get('repeat') === '1' : base.repeat,
     themeId: themes.some((t) => t.id === theme) ? theme! : base.themeId,
     animationId: animations.some((a) => a.id === anim) ? (anim as AnimationId) : base.animationId,
   }
 }
 
 export function hasShareParams(params: URLSearchParams) {
-  return ['pick', 'theme', 'anim', 'min', 'max', 'lower'].some((key) => params.has(key))
+  return ['pick', 'theme', 'anim', 'min', 'max', 'lower', 'repeat'].some((key) =>
+    params.has(key),
+  )
 }
 
 export function readInitialSettings(stored: Settings): Settings {

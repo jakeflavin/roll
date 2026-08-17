@@ -10,6 +10,8 @@ export type Settings = {
   max: number
   /** Letter source only: include a–z alongside A–Z. */
   bothCases: boolean
+  /** Allow the same value to come up again; off draws without replacement. */
+  repeat: boolean
   themeId: string
   animationId: AnimationId
 }
@@ -21,6 +23,7 @@ export const defaultSettings: Settings = {
   min: 1,
   max: 100,
   bothCases: false,
+  repeat: false,
   themeId: defaultTheme.id,
   animationId: defaultAnimation.id,
 }
