@@ -32,6 +32,9 @@ type Props = {
   kind: 'confetti' | 'fireworks'
   width: number
   height: number
+  /** Where the value sits, in the same space as width and height. */
+  originX: number
+  originY: number
   durationMs: number
   onDone: () => void
 }
@@ -43,7 +46,15 @@ const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)]
  * The celebration that plays over a settled value. Drawn on a canvas rather than as
  * elements: a few hundred pieces as DOM nodes would cost a layout pass every frame.
  */
-export function Celebration({ kind, width, height, durationMs, onDone }: Props) {
+export function Celebration({
+  kind,
+  width,
+  height,
+  originX: originCssX,
+  originY: originCssY,
+  durationMs,
+  onDone,
+}: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
   const done = useRef(onDone)
   done.current = onDone
@@ -60,19 +71,19 @@ export function Celebration({ kind, width, height, durationMs, onDone }: Props) 
 
     const w = canvas.width
     const h = canvas.height
-    const originX = w / 2
-    const originY = h / 2
+    const originX = originCssX * dpr
+    const originY = originCssY * dpr
 
     // Thrown from the middle so it sweeps across the value and hides it, then falls
     // away to uncover whatever the value has become.
     const pieces: Piece[] = []
     if (kind === 'confetti') {
-      for (let i = 0; i < 260; i++) {
+      for (let i = 0; i < 320; i++) {
         const angle = rand(-Math.PI * 0.98, -Math.PI * 0.02)
-        const speed = rand(4, 15) * dpr
+        const speed = rand(5, 18) * dpr
         pieces.push({
-          x: originX + rand(-w * 0.3, w * 0.3),
-          y: originY + rand(-h * 0.12, h * 0.2),
+          x: originX + rand(-w * 0.22, w * 0.22),
+          y: originY + rand(-h * 0.06, h * 0.1),
           vx: Math.cos(angle) * speed * 1.35,
           vy: Math.sin(angle) * speed,
           rot: rand(0, Math.PI * 2),
@@ -89,15 +100,24 @@ export function Celebration({ kind, width, height, durationMs, onDone }: Props) 
     // of them has faded by the time it is uncovered.
     const bursts = [
       { at: 0, x: originX, y: originY },
-      { at: 90, x: originX - w * 0.24, y: originY - h * 0.14 },
-      { at: 190, x: originX + w * 0.24, y: originY + h * 0.06 },
-      { at: 300, x: originX - w * 0.08, y: originY + h * 0.18 },
-      { at: 420, x: originX + w * 0.1, y: originY - h * 0.2 },
+      { at: 70, x: originX - w * 0.26, y: originY - h * 0.16 },
+      { at: 140, x: originX + w * 0.27, y: originY + h * 0.04 },
+      { at: 220, x: originX - w * 0.1, y: originY + h * 0.2 },
+      { at: 300, x: originX + w * 0.12, y: originY - h * 0.24 },
+      { at: 380, x: originX - w * 0.33, y: originY + h * 0.12 },
+      { at: 460, x: originX + w * 0.35, y: originY - h * 0.12 },
+      { at: 540, x: originX - w * 0.18, y: originY - h * 0.28 },
+      { at: 620, x: originX + w * 0.04, y: originY + h * 0.3 },
+      { at: 700, x: originX - w * 0.38, y: originY - h * 0.04 },
+      { at: 780, x: originX + w * 0.22, y: originY + h * 0.26 },
     ]
     const sparks: Spark[] = []
     let nextBurst = 0
 
-    const gravity = 0.28 * dpr
+    // Light enough that the pieces are still on screen when the value is uncovered —
+    // a heavier fall dropped them past the bottom edge within a second, leaving a bare
+    // screen for the rest of the run.
+    const gravity = 0.11 * dpr
     const start = performance.now()
     let frame = 0
 
@@ -109,7 +129,9 @@ export function Celebration({ kind, width, height, durationMs, onDone }: Props) 
       if (kind === 'confetti') {
         for (const p of pieces) {
           p.vy += gravity
-          p.vx *= 0.995
+          // Air drag, so a piece settles into a drift rather than accelerating away.
+          p.vy *= 0.985
+          p.vx *= 0.99
           p.x += p.vx
           p.y += p.vy
           p.rot += p.spin
@@ -149,7 +171,7 @@ export function Celebration({ kind, width, height, durationMs, onDone }: Props) 
         for (const s of sparks) {
           const age = elapsed - s.born
           if (age < 0 || age > s.life) continue
-          s.vy += gravity * 0.42
+          s.vy += gravity * 0.9
           s.vx *= 0.976
           s.vy *= 0.976
           s.x += s.vx
@@ -171,7 +193,7 @@ export function Celebration({ kind, width, height, durationMs, onDone }: Props) 
 
     frame = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(frame)
-  }, [kind, width, height, durationMs])
+  }, [kind, width, height, originCssX, originCssY, durationMs])
 
   return <canvas ref={ref} className="celebration-canvas" aria-hidden="true" style={{ width, height }} />
 }

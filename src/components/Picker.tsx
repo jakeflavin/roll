@@ -71,9 +71,13 @@ export function Picker({
   const [exhausted, setExhausted] = useState<boolean[]>([])
   // Confetti and fireworks play across the whole stage rather than over one value, so
   // the picker owns them: sized to a slot's own box, the pieces left the canvas at once.
-  const [party, setParty] = useState<{ width: number; height: number; run: number } | null>(
-    null,
-  )
+  const [party, setParty] = useState<{
+    width: number
+    height: number
+    originX: number
+    originY: number
+    run: number
+  } | null>(null)
 
   const stageRef = useRef<HTMLDivElement>(null)
   const partyTimer = useRef(0)
@@ -144,8 +148,19 @@ export function Picker({
     // Starts with the run: the celebration is the cover the value changes behind.
     clearTimeout(partyTimer.current)
     if (isCelebration(animation)) {
+      // Sized to the window rather than to the stage: pieces thrown from the value need
+      // somewhere to travel, and a canvas that stopped at the stage clipped them off at
+      // the top and bottom.
       const stage = stageRef.current?.getBoundingClientRect()
-      if (stage) setParty({ width: stage.width, height: stage.height, run: id })
+      if (stage) {
+        setParty({
+          width: window.innerWidth,
+          height: window.innerHeight,
+          originX: stage.left + stage.width / 2,
+          originY: stage.top + stage.height / 2,
+          run: id,
+        })
+      }
     }
   }, [busy, runId, exhausted, slots, allowRepeat, animation, onStartOver])
 
@@ -206,6 +221,8 @@ export function Picker({
             kind={animation === 'fireworks' ? 'fireworks' : 'confetti'}
             width={party.width}
             height={party.height}
+            originX={party.originX}
+            originY={party.originY}
             durationMs={animationDuration(animation)}
             onDone={() => setParty(null)}
           />

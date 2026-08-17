@@ -132,12 +132,13 @@ body {
   pointer-events: none;
 }
 
-/* Covers the whole stage and sits above the values, without taking their clicks. */
+/* Covers the window rather than the stage, so nothing thrown from the value is clipped
+   at an edge. Above everything on the page, but it never takes a click. */
 .celebration-canvas {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
-  z-index: 1;
+  z-index: 5;
   pointer-events: none;
 }
 
