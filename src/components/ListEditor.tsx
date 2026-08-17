@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Plus, Upload, X } from 'lucide-react'
-import { parseCsv, type CustomList } from '../lists'
+import { cleanItems, parseCsv, type CustomList } from '../lists'
 
 type Props = {
   list: CustomList
@@ -30,11 +30,18 @@ export function ListEditor({ list, onUpdate, onDelete }: Props) {
     if (!file) return
     try {
       const items = parseCsv(await file.text())
+      // What the file held is not what gets added: entries already in the list are
+      // skipped, so reporting the parsed count would overstate it.
+      const added = cleanItems([...list.items, ...items]).length - list.items.length
       if (!items.length) {
         setStatus('No entries found in that file.')
       } else {
         onUpdate({ items: [...list.items, ...items] })
-        setStatus(`Added ${items.length} from ${file.name}.`)
+        setStatus(
+          added === 0
+            ? `Everything in ${file.name} was already here.`
+            : `Added ${added} from ${file.name}.`,
+        )
       }
     } catch {
       setStatus("That file couldn't be read.")
@@ -45,23 +52,25 @@ export function ListEditor({ list, onUpdate, onDelete }: Props) {
 
   return (
     <>
-      <fieldset className="settings-group">
-        <legend>Name</legend>
-        <input
-          className="text-input"
-          value={list.name}
-          onChange={(e) => onUpdate({ name: e.target.value })}
-          onBlur={() => !list.name.trim() && onUpdate({ name: 'My list' })}
-        />
-      </fieldset>
-
-      <fieldset className="settings-group">
-        <legend>Add entries</legend>
-        <div className="backup-row">
+      {/* The list is its own card, the way a group is on the settings page: its name
+          sits bare at the top, and the ways of filling it are rows beneath. */}
+      <div className="group-card">
+        <div className="group-head">
           <input
-            className="text-input"
+            className="bare-input"
+            value={list.name}
+            aria-label="List name"
+            onChange={(e) => onUpdate({ name: e.target.value })}
+            onBlur={() => !list.name.trim() && onUpdate({ name: 'My list' })}
+          />
+        </div>
+
+        <div className="group-field">
+          <input
+            className="plain-input"
             value={draft}
-            placeholder="Ada Lovelace"
+            placeholder="Add an entry"
+            aria-label="Add an entry"
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -70,18 +79,14 @@ export function ListEditor({ list, onUpdate, onDelete }: Props) {
               }
             }}
           />
-          <button
-            className="icon-button"
-            onClick={() => addItems(draft)}
-            aria-label="Add entry"
-          >
+          <button className="ghost-button" onClick={() => addItems(draft)} aria-label="Add entry">
             <Plus size={18} />
           </button>
         </div>
 
-        <button className="outline-button is-wide" onClick={() => fileRef.current?.click()}>
-          <Upload size={15} aria-hidden="true" />
+        <button className="group-link" onClick={() => fileRef.current?.click()}>
           Upload CSV
+          <Upload size={15} aria-hidden="true" />
         </button>
         <input
           ref={fileRef}
@@ -90,25 +95,24 @@ export function ListEditor({ list, onUpdate, onDelete }: Props) {
           accept=".csv,text/csv,text/plain"
           onChange={(e) => onFile(e.target.files?.[0])}
         />
+      </div>
 
-        <p className="settings-hint">
-          {status ?? 'One entry per row, from the first column. Duplicates are skipped.'}
-        </p>
-      </fieldset>
+      {/* Only speaks when there is something to report. */}
+      {status && <p className="settings-hint">{status}</p>}
 
       <fieldset className="settings-group">
         <legend>
           {list.items.length} {list.items.length === 1 ? 'entry' : 'entries'}
         </legend>
         {list.items.length === 0 ? (
-          <p className="settings-hint">Nothing here yet. Add entries or upload a CSV.</p>
+          <p className="settings-hint">Nothing here yet.</p>
         ) : (
           <ul className="entry-list">
             {list.items.map((item) => (
               <li key={item}>
                 <span>{item}</span>
                 <button
-                  className="entry-remove"
+                  className="ghost-button is-small"
                   onClick={() => onUpdate({ items: list.items.filter((i) => i !== item) })}
                   aria-label={`Remove ${item}`}
                 >
@@ -120,7 +124,9 @@ export function ListEditor({ list, onUpdate, onDelete }: Props) {
         )}
       </fieldset>
 
-      <button className="danger-button" onClick={onDelete}>
+      {/* Quiet, like clearing a session: destructive, so it should not look like the
+          ordinary actions above it. */}
+      <button className="link-button is-danger" onClick={onDelete}>
         Delete list
       </button>
     </>
