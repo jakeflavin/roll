@@ -68,32 +68,12 @@ body {
   user-select: none;
 }
 
-/* Threads-style spoiler: the value stays in place, blurred, behind a tappable scrim. */
-.reveal-cover {
+/* Threads draws its spoiler as particles on a canvas rather than a panel over the
+   text, so Reveal does the same: the glyphs disperse into drifting dust and reform
+   as the new number. */
+.reveal-canvas {
   position: absolute;
-  inset: -8% -12%;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  background: color-mix(in srgb, var(--surface) 55%, transparent);
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  cursor: pointer;
-  backdrop-filter: blur(2px);
-  animation: cover-in 180ms ease;
-}
-
-@keyframes cover-in {
-  from {
-    opacity: 0;
-  }
-}
-
-.reveal-hint {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--muted);
-  letter-spacing: 0.01em;
+  pointer-events: none;
 }
 
 .animation-grid {

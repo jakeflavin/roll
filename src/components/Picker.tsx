@@ -2,10 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import type { Theme } from '../themes'
 import { animationById, type AnimationId } from '../animations'
+import { RevealCloud } from './RevealCloud'
 
 const ROLL_MS = 1500
 const SCRAMBLE_MS = 1100
 const FLIP_MS = 620
+// Long enough to read as disperse → drift → reform.
+const REVEAL_MS = 1600
 
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min
@@ -25,8 +28,10 @@ type Props = {
 export function Picker({ min, max, theme, animation }: Props) {
   const [display, setDisplay] = useState(() => String(randomInt(min, max)))
   const [busy, setBusy] = useState(false)
-  // Reveal keeps the picked value on screen but obscured until the user uncovers it.
-  const [covered, setCovered] = useState(false)
+  // While set, the value is drawn as a particle cloud on canvas instead of as text.
+  const [cloud, setCloud] = useState<{ from: string; to: string } | null>(null)
+  const valueRef = useRef<HTMLDivElement>(null)
+  const [metrics, setMetrics] = useState({ font: '', letterSpacing: '', color: '', box: [0, 0] })
   // Bumping this key restarts the settle animation even when the same value repeats.
   const [settleKey, setSettleKey] = useState(0)
   // Drives the card turn; the value swaps while the card is edge-on.
@@ -39,6 +44,7 @@ export function Picker({ min, max, theme, animation }: Props) {
     timers.current.forEach(clearTimeout)
     timers.current = []
     setFlipping(false)
+    setCloud(null)
   }
 
   const after = (ms: number, fn: () => void) => {
@@ -50,7 +56,6 @@ export function Picker({ min, max, theme, animation }: Props) {
     stop()
     setDisplay(String(randomInt(min, max)))
     setBusy(false)
-    setCovered(false)
   }, [min, max])
 
   // Switching animations mid-cover would strand the number behind a cover that the
@@ -58,7 +63,6 @@ export function Picker({ min, max, theme, animation }: Props) {
   useEffect(() => {
     stop()
     setBusy(false)
-    setCovered(false)
   }, [animation])
 
   useEffect(() => stop, [])
@@ -116,26 +120,40 @@ export function Picker({ min, max, theme, animation }: Props) {
     })
   }, [min, max])
 
+  const runReveal = useCallback(() => {
+    const el = valueRef.current
+    if (!el) return
+    const style = getComputedStyle(el)
+    const rect = el.getBoundingClientRect()
+    setMetrics({
+      // Canvas font shorthand needs weight and size baked in; the DOM is the source
+      // of truth so the particles match the rendered glyphs exactly.
+      font: `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`,
+      letterSpacing: style.letterSpacing === 'normal' ? '0px' : style.letterSpacing,
+      color: style.color,
+      // Room around the glyphs for the particles to scatter into.
+      box: [rect.width * 2, rect.height * 1.9],
+    })
+    setCloud({ from: display, to: String(randomInt(min, max)) })
+  }, [min, max, display])
+
+  const onCloudDone = useCallback(() => {
+    setCloud((c) => {
+      if (c) setDisplay(c.to)
+      return null
+    })
+    setBusy(false)
+  }, [])
+
   const roll = useCallback(() => {
     if (busy) return
 
-    if (animation === 'reveal') {
-      setDisplay(String(randomInt(min, max)))
-      setCovered(true)
-      return
-    }
-
     setBusy(true)
-    setCovered(false)
     if (animation === 'scramble') runScramble()
     else if (animation === 'flip') runFlip()
+    else if (animation === 'reveal') runReveal()
     else runRoll()
-  }, [busy, animation, min, max, runRoll, runScramble, runFlip])
-
-  const uncover = useCallback(() => {
-    setCovered(false)
-    setSettleKey((k) => k + 1)
-  }, [])
+  }, [busy, animation, runRoll, runScramble, runFlip, runReveal])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -143,12 +161,11 @@ export function Picker({ min, max, theme, animation }: Props) {
       const target = e.target as HTMLElement
       if (target.closest('input, button, dialog')) return
       e.preventDefault()
-      if (covered) uncover()
-      else roll()
+      roll()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [roll, uncover, covered])
+  }, [roll])
 
   const spinning = busy && animation === 'roll'
   const meta = animationById(animation)
@@ -156,12 +173,6 @@ export function Picker({ min, max, theme, animation }: Props) {
   // Each animation owns both its motion target and the timing that sells it, so they
   // are resolved together rather than as nested ternaries in the JSX.
   const { animate, transition } = (() => {
-    if (covered) {
-      return {
-        animate: { scale: 1, filter: 'blur(0.16em)' },
-        transition: { duration: 0.18, ease: 'easeOut' as const },
-      }
-    }
     if (flipping) {
       return {
         animate: { rotateX: [0, -90, -90, 0], scale: [1, 0.94, 0.94, 1] },
@@ -195,24 +206,36 @@ export function Picker({ min, max, theme, animation }: Props) {
     <div className="picker">
       <div className="picker-stage">
         <motion.div
+          ref={valueRef}
           key={settleKey}
           className="picker-value"
           aria-live="polite"
           animate={animate}
           transition={transition}
+          // The canvas draws the glyphs while the cloud runs; hiding the text avoids
+          // showing the value twice, and keeping it in flow holds the stage's size.
           style={{
             fontFamily: theme.displayFont,
             fontWeight: theme.displayWeight,
             letterSpacing: theme.displayTracking,
+            visibility: cloud ? 'hidden' : 'visible',
           }}
         >
-          {covered ? <span aria-hidden="true">{display}</span> : display}
+          {display}
         </motion.div>
 
-        {covered && (
-          <button className="reveal-cover" onClick={uncover}>
-            <span className="reveal-hint">Tap to reveal</span>
-          </button>
+        {cloud && (
+          <RevealCloud
+            from={cloud.from}
+            to={cloud.to}
+            font={metrics.font}
+            letterSpacing={metrics.letterSpacing}
+            color={metrics.color}
+            width={metrics.box[0]}
+            height={metrics.box[1]}
+            durationMs={REVEAL_MS}
+            onDone={onCloudDone}
+          />
         )}
       </div>
 
