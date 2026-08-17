@@ -61,6 +61,8 @@ export type SourceConfig = {
 export type PickSource = {
   pick: () => string
   scrambleChar: () => string
+  /** Whether a value belongs to this pool — used to vet a value restored from a URL. */
+  has: (value: string) => boolean
 }
 
 const sample = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)]
@@ -71,6 +73,7 @@ function fromList(list: string[]): PickSource {
   return {
     pick: () => sample(list),
     scrambleChar: () => sample(chars.length ? chars : list),
+    has: (value) => list.includes(value),
   }
 }
 
@@ -78,10 +81,18 @@ export function createSource({ sourceId, min, max, bothCases }: SourceConfig): P
   switch (sourceId) {
     case 'emoji':
       // Emoji have no smaller parts to churn through, so Scramble swaps whole glyphs.
-      return { pick: () => sample(emoji), scrambleChar: () => sample(emoji) }
+      return {
+        pick: () => sample(emoji),
+        scrambleChar: () => sample(emoji),
+        has: (value) => emoji.includes(value),
+      }
     case 'letter': {
       const letters = bothCases ? [...upperLetters, ...lowerLetters] : upperLetters
-      return { pick: () => sample(letters), scrambleChar: () => sample(letters) }
+      return {
+        pick: () => sample(letters),
+        scrambleChar: () => sample(letters),
+        has: (value) => letters.includes(value),
+      }
     }
     case 'animal':
       return fromList(animals)
@@ -100,6 +111,10 @@ export function createSource({ sourceId, min, max, bothCases }: SourceConfig): P
       return {
         pick: () => String(Math.floor(Math.random() * (hi - lo + 1)) + lo),
         scrambleChar: () => String(Math.floor(Math.random() * 10)),
+        has: (value) => {
+          const n = Number(value)
+          return /^-?\d+$/.test(value) && n >= lo && n <= hi
+        },
       }
     }
   }

@@ -2,13 +2,16 @@ import { useEffect, useMemo, useState } from 'react'
 import { Settings as SettingsIcon } from 'lucide-react'
 import { Picker } from './components/Picker'
 import { SettingsDialog } from './components/SettingsDialog'
+import { ShareButton } from './components/ShareButton'
 import { themeById } from './themes'
 import { createSource } from './sources'
+import { buildShareUrl, readInitialValue, settingsToParams } from './shareUrl'
 import { useSettings } from './useSettings'
 
 export default function App() {
   const [settings, setSettings] = useSettings()
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [result, setResult] = useState(readInitialValue)
   const theme = themeById(settings.themeId)
 
   const { sourceId, min, max, bothCases } = settings
@@ -19,6 +22,13 @@ export default function App() {
     () => createSource({ sourceId, min, max, bothCases }),
     [sourceId, min, max, bothCases],
   )
+
+  // Keeping the address bar in step means the URL is always shareable as it stands,
+  // survives a refresh, and never describes state the app has moved on from.
+  useEffect(() => {
+    const params = settingsToParams(settings, result)
+    window.history.replaceState(null, '', `${window.location.pathname}?${params}`)
+  }, [settings, result])
 
   useEffect(() => {
     const root = document.documentElement
@@ -48,6 +58,9 @@ export default function App() {
           sourceKey={sourceKey}
           theme={theme}
           animation={settings.animationId}
+          initialValue={result}
+          onSettle={setResult}
+          leadingAction={<ShareButton url={buildShareUrl(settings, result)} />}
         />
       </main>
 

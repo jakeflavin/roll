@@ -123,8 +123,21 @@ body {
   color: var(--muted);
 }
 
+.picker-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+}
+
+/* Square, so it matches the header's icon button rather than stretching with the row. */
+.picker-actions .icon-button {
+  width: 56px;
+  height: auto;
+  flex: 0 0 auto;
+}
+
 .roll-button {
-  width: 100%;
+  flex: 1;
   padding: 16px 40px;
   font: inherit;
   font-size: 15px;

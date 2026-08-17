@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { motion } from 'motion/react'
 import type { Theme } from '../themes'
 import { animationById, type AnimationId } from '../animations'
@@ -48,14 +48,32 @@ type Props = {
   sourceKey: string
   theme: Theme
   animation: AnimationId
+  /** Sits to the left of the roll button, on the same bottom row. */
+  leadingAction?: ReactNode
+  /** A value carried in from the URL, used only if it belongs to the current source. */
+  initialValue?: string
+  /** Fires for values that stick, never for the frames an animation passes through. */
+  onSettle?: (value: string) => void
 }
 
-export function Picker({ source, sourceKey, theme, animation }: Props) {
-  const [display, setDisplay] = useState(() => source.pick())
+export function Picker({
+  source,
+  sourceKey,
+  theme,
+  animation,
+  leadingAction,
+  initialValue,
+  onSettle,
+}: Props) {
+  const [display, setDisplay] = useState(() =>
+    initialValue && source.has(initialValue) ? initialValue : source.pick(),
+  )
   // Held in a ref so the animation callbacks are not rebuilt, and mid-run timers are
   // not stranded, every time the source object's identity changes.
   const sourceRef = useRef(source)
   sourceRef.current = source
+  const settleRef = useRef(onSettle)
+  settleRef.current = onSettle
   const [busy, setBusy] = useState(false)
   // While set, the value is drawn as a particle cloud on canvas instead of as text.
   const [cloud, setCloud] = useState<{ from: string; to: string } | null>(null)
@@ -84,9 +102,19 @@ export function Picker({ source, sourceKey, theme, animation }: Props) {
   }
 
   // A different source makes the showing value stale, so reseed from the new one.
+  // Tracking which source the current value came from — rather than "is this the first
+  // run" — means StrictMode's repeated effects cannot discard a restored value.
+  const seededFor = useRef(sourceKey)
   useEffect(() => {
+    if (seededFor.current === sourceKey) {
+      settleRef.current?.(display)
+      return
+    }
+    seededFor.current = sourceKey
     stop()
-    setDisplay(sourceRef.current.pick())
+    const next = sourceRef.current.pick()
+    setDisplay(next)
+    settleRef.current?.(next)
     setBusy(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sourceKey])
@@ -104,6 +132,7 @@ export function Picker({ source, sourceKey, theme, animation }: Props) {
     setDisplay(final)
     setSettleKey((k) => k + 1)
     setBusy(false)
+    settleRef.current?.(final)
   }, [])
 
   const runRoll = useCallback(() => {
@@ -149,13 +178,16 @@ export function Picker({ source, sourceKey, theme, animation }: Props) {
     setFlipping(true)
     // A value swap per flip, each while the card is edge-on, so the card is never
     // seen changing. The last one lands on the value that is kept.
+    let last = ''
     for (let i = 0; i < FLIP_COUNT; i++) {
       const next = sourceRef.current.pick()
+      last = next
       after((FLIP_MS * (i + 0.5)) / FLIP_COUNT, () => setDisplay(next))
     }
     after(FLIP_MS, () => {
       setFlipping(false)
       setBusy(false)
+      settleRef.current?.(last)
     })
   }, [])
 
@@ -185,6 +217,7 @@ export function Picker({ source, sourceKey, theme, animation }: Props) {
     after(REVEAL_MS - HANDOFF_MS, () => {
       setDisplay(to)
       setHandoff(true)
+      settleRef.current?.(to)
     })
   }, [display])
 
@@ -305,9 +338,12 @@ export function Picker({ source, sourceKey, theme, animation }: Props) {
         )}
       </div>
 
-      <button className="roll-button" onClick={roll} disabled={busy}>
-        {busy ? meta.busyLabel : meta.name}
-      </button>
+      <div className="picker-actions">
+        {leadingAction}
+        <button className="roll-button" onClick={roll} disabled={busy}>
+          {busy ? meta.busyLabel : meta.name}
+        </button>
+      </div>
     </div>
   )
 }

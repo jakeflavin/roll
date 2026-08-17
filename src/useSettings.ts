@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { defaultTheme } from './themes'
 import { defaultAnimation, type AnimationId } from './animations'
 import { defaultSource, type SourceId } from './sources'
+import { readInitialSettings } from './shareUrl'
 
 export type Settings = {
   sourceId: SourceId
@@ -35,7 +36,8 @@ function load(): Settings {
 }
 
 export function useSettings() {
-  const [settings, setSettings] = useState<Settings>(load)
+  // A shared link's options win over what this browser had stored.
+  const [settings, setSettings] = useState<Settings>(() => readInitialSettings(load()))
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
