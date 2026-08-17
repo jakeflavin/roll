@@ -61,8 +61,16 @@ export function SessionDialog({ open, onClose, session, onClear }: Props) {
                 {day.entries.map((entry) => (
                   <li key={`${entry.at}-${entry.value}`}>
                     <span className="session-value">{entry.value}</span>
-                    <span className="session-source">
-                      {entry.sourceName ?? sourceById(entry.sourceId).name}
+                    <span className="session-meta">
+                      <span>{entry.sourceName ?? sourceById(entry.sourceId).name}</span>
+                      {/* Two identical rows are otherwise indistinguishable, and look
+                          like a bug rather than two separate rolls. */}
+                      <time dateTime={new Date(entry.at).toISOString()}>
+                        {new Date(entry.at).toLocaleTimeString(undefined, {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
+                      </time>
                     </span>
                   </li>
                 ))}
@@ -70,7 +78,9 @@ export function SessionDialog({ open, onClose, session, onClear }: Props) {
             </section>
           ))}
 
-          <button className="danger-button" onClick={onClear}>
+          {/* Quiet by default: it destroys the history and the no-repeat memory with
+              it, so it should not compete with reading the list. */}
+          <button className="link-button is-danger" onClick={onClear}>
             Clear session
           </button>
         </>

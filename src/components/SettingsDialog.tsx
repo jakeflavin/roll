@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown, ChevronLeft, Keyboard, X } from 'lucide-react'
+import { ChevronDown, ChevronLeft, History, Keyboard, X } from 'lucide-react'
 import { themes } from '../themes'
 import { animations } from '../animations'
 import { allSources, sources, type SourceId } from '../sources'
@@ -21,6 +21,9 @@ type Props = {
   onRestore: (settings: Settings, session: Session, lists: CustomList[]) => void
   lists: CustomList[]
   onCreateList: () => void
+  onOpenSession: () => void
+  /** The value on screen, previewed in the theme swatches. */
+  sample: string
   onUpdateList: (id: string, patch: Partial<Omit<CustomList, 'id'>>) => void
   onDeleteList: (id: string) => void
 }
@@ -35,6 +38,8 @@ export function SettingsDialog({
   onRestore,
   lists,
   onCreateList,
+  onOpenSession,
+  sample,
   onUpdateList,
   onDeleteList,
 }: Props) {
@@ -42,6 +47,8 @@ export function SettingsDialog({
   // The drawer has two pages: the settings themselves, and the pool of the selected
   // source. Kept here rather than in app state — it is drawer-local navigation.
   const [page, setPage] = useState<'main' | 'options' | 'list' | 'shortcuts'>('main')
+  // Touch devices get no shortcut list; there is nothing to press.
+  const hasKeyboard = typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches
 
   useEffect(() => {
     const el = ref.current
@@ -237,19 +244,19 @@ export function SettingsDialog({
               </div>
             )}
 
-            <div className="link-row">
+            <div className="button-grid">
               {isCustomId(primary) ? (
-                <button className="link-button" onClick={() => setPage('list')}>
+                <button className="outline-button" onClick={() => setPage('list')}>
                   Edit this list
                 </button>
               ) : (
                 source.options && (
-                  <button className="link-button" onClick={() => setPage('options')}>
-                    View all {source.options.length} options
+                  <button className="outline-button" onClick={() => setPage('options')}>
+                    See all {source.options.length}
                   </button>
                 )
               )}
-              <button className="link-button" onClick={onCreateList}>
+              <button className="outline-button" onClick={onCreateList}>
                 New list
               </button>
             </div>
@@ -302,9 +309,9 @@ export function SettingsDialog({
           )}
 
           <fieldset className="settings-group">
-            <legend>Repeats</legend>
+            <legend>Repeat picks</legend>
             <div className="switch-row">
-              <label htmlFor="repeat">Repeat</label>
+              <label htmlFor="repeat">Allow the same answer twice</label>
               <input
                 id="repeat"
                 type="checkbox"
@@ -313,9 +320,6 @@ export function SettingsDialog({
                 onChange={(e) => onChange({ ...settings, repeat: e.target.checked })}
               />
             </div>
-            <p className="settings-hint">
-              Off, each option comes up once until they have all been used.
-            </p>
           </fieldset>
 
           {/* Everything above changes what gets picked; everything below changes how it
@@ -346,7 +350,7 @@ export function SettingsDialog({
                         color: t.text,
                       }}
                     >
-                      42
+                      {sample}
                     </span>
                   </span>
                   <span className="theme-name">{t.name}</span>
@@ -366,24 +370,31 @@ export function SettingsDialog({
                   aria-pressed={a.id === settings.animationId}
                 >
                   <span className="animation-name">{a.name}</span>
-                  <span className="animation-description">{a.description}</span>
                 </button>
               ))}
             </div>
+            <p className="settings-hint">
+              {animations.find((a) => a.id === settings.animationId)?.description}
+            </p>
           </fieldset>
 
           <hr className="settings-divider" />
 
           <fieldset className="settings-group">
-            <legend>Keyboard</legend>
-            <button className="outline-button is-wide" onClick={() => setPage('shortcuts')}>
-              <Keyboard size={15} aria-hidden="true" />
-              View shortcuts
-            </button>
-          </fieldset>
-
-          <fieldset className="settings-group">
-            <legend>Backup</legend>
+            <legend>Session and backup</legend>
+            <div className="button-grid">
+              <button className="outline-button" onClick={onOpenSession}>
+                <History size={15} aria-hidden="true" />
+                Past picks
+              </button>
+              {/* A shortcut list is no use without a keyboard to press. */}
+              {hasKeyboard && (
+                <button className="outline-button" onClick={() => setPage('shortcuts')}>
+                  <Keyboard size={15} aria-hidden="true" />
+                  Shortcuts
+                </button>
+              )}
+            </div>
             <BackupControls
               settings={settings}
               session={session}
@@ -391,6 +402,7 @@ export function SettingsDialog({
               onRestore={onRestore}
             />
           </fieldset>
+
         </>
       )}
     </dialog>

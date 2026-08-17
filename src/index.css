@@ -350,6 +350,12 @@ body {
   color: var(--text);
 }
 
+.link-button.is-danger {
+  display: block;
+  margin: 4px auto 0;
+  text-align: center;
+}
+
 .settings-divider {
   height: 0;
   /* Larger than the groups' own bottom margin, which it collapses against — a smaller
@@ -400,15 +406,27 @@ body {
   font-size: 15px;
 }
 
-.session-source {
+.session-meta {
+  display: flex;
   flex: 0 0 auto;
+  gap: 10px;
   font-size: 12px;
   color: var(--muted);
 }
 
-.backup-row {
+.backup-row,
+.button-grid {
   display: flex;
   gap: 10px;
+}
+
+.button-grid {
+  margin-top: 10px;
+}
+
+/* Actions were 16px-tall underlined links, well under a comfortable touch target. */
+.button-grid .outline-button {
+  min-height: 40px;
 }
 
 .link-row {
@@ -742,9 +760,15 @@ body {
 }
 
 .theme-preview {
+  max-width: 100%;
+  padding: 0 8px;
   font-size: 26px;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  /* The sample is whatever is on screen, which can be a long word. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .theme-name {

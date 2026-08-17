@@ -160,6 +160,11 @@ export default function App() {
         onClose={() => setSettingsOpen(false)}
         settings={settings}
         onChange={setSettings}
+        onOpenSession={() => {
+          setSettingsOpen(false)
+          setSessionOpen(true)
+        }}
+        sample={results[0] ?? '42'}
         session={session}
         onRestore={(nextSettings, nextSession, nextLists) => {
           replaceLists(nextLists)
