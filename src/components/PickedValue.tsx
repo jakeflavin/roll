@@ -73,6 +73,9 @@ export function PickedValue({
   const [handoff, setHandoff] = useState(false)
   const [settleKey, setSettleKey] = useState(0)
   const [flipping, setFlipping] = useState(false)
+  // True only while a run is in flight. Deriving this from the run counter instead
+  // left the blur applied for good once the first roll had happened.
+  const [running, setRunning] = useState(false)
   const [metrics, setMetrics] = useState({ font: '', letterSpacing: '', color: '', box: [0, 0] })
 
   const valueRef = useRef<HTMLDivElement>(null)
@@ -90,6 +93,7 @@ export function PickedValue({
     setFlipping(false)
     setCloud(null)
     setHandoff(false)
+    setRunning(false)
   }, [])
 
   const after = (ms: number, fn: () => void) => {
@@ -119,9 +123,12 @@ export function PickedValue({
       return
     }
 
+    setRunning(true)
+
     const settle = (final: string) => {
       setDisplay(final)
       setSettleKey((k) => k + 1)
+      setRunning(false)
       settledRef.current?.(final)
     }
 
@@ -172,6 +179,7 @@ export function PickedValue({
       after((FLIP_MS * (FLIP_COUNT - 0.5)) / FLIP_COUNT, () => setDisplay(target))
       after(FLIP_MS, () => {
         setFlipping(false)
+        setRunning(false)
         settledRef.current?.(target)
       })
       return
@@ -202,12 +210,13 @@ export function PickedValue({
     after(REVEAL_MS - HANDOFF_MS, () => {
       setDisplay(target)
       setHandoff(true)
+      setRunning(false)
       settledRef.current?.(target)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId])
 
-  const spinning = runId > 0 && animation === 'roll'
+  const spinning = running && animation === 'roll'
 
   const { animate, transition } = (() => {
     if (cloud) {
