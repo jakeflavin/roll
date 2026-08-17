@@ -53,11 +53,83 @@ body {
   gap: 40px;
 }
 
+.picker-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  /* Without perspective the flip's rotateX reads as a flat vertical squash. */
+  perspective: 1200px;
+}
+
 .picker-value {
   font-size: clamp(6rem, 26vw, 18rem);
   line-height: 1;
   font-variant-numeric: tabular-nums;
   user-select: none;
+}
+
+/* Threads-style spoiler: the value stays in place, blurred, behind a tappable scrim. */
+.reveal-cover {
+  position: absolute;
+  inset: -8% -12%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  cursor: pointer;
+  backdrop-filter: blur(2px);
+  animation: cover-in 180ms ease;
+}
+
+@keyframes cover-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.reveal-hint {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+}
+
+.animation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.animation-option {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.animation-option.is-active {
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+}
+
+.animation-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.animation-description {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--muted);
 }
 
 .roll-button {

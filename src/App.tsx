@@ -33,7 +33,12 @@ export default function App() {
       </header>
 
       <main className="app-main">
-        <Picker min={settings.min} max={settings.max} theme={theme} />
+        <Picker
+          min={settings.min}
+          max={settings.max}
+          theme={theme}
+          animation={settings.animationId}
+        />
       </main>
 
       <SettingsDialog

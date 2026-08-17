@@ -17,6 +17,22 @@ export type Theme = {
 
 export const themes: Theme[] = [
   {
+    id: 'noir',
+    name: 'Noir',
+    background:
+      'radial-gradient(90% 70% at 50% 12%, #2a2a35 0%, transparent 60%),' +
+      'radial-gradient(80% 60% at 15% 90%, #1d2b3a 0%, transparent 62%),' +
+      'radial-gradient(80% 60% at 90% 80%, #33203a 0%, transparent 62%),' +
+      'linear-gradient(180deg, #0d0d11 0%, #08080b 100%)',
+    text: '#eceaf2',
+    muted: 'rgba(236, 234, 242, 0.5)',
+    surface: 'rgba(20, 20, 26, 0.9)',
+    border: 'rgba(236, 234, 242, 0.14)',
+    displayFont: '"JetBrains Mono", ui-monospace, monospace',
+    displayWeight: 600,
+    displayTracking: '-0.03em',
+  },
+  {
     id: 'aurora',
     name: 'Aurora',
     background:
@@ -65,22 +81,6 @@ export const themes: Theme[] = [
     displayTracking: '-0.02em',
   },
   {
-    id: 'noir',
-    name: 'Noir',
-    background:
-      'radial-gradient(90% 70% at 50% 12%, #2a2a35 0%, transparent 60%),' +
-      'radial-gradient(80% 60% at 15% 90%, #1d2b3a 0%, transparent 62%),' +
-      'radial-gradient(80% 60% at 90% 80%, #33203a 0%, transparent 62%),' +
-      'linear-gradient(180deg, #0d0d11 0%, #08080b 100%)',
-    text: '#eceaf2',
-    muted: 'rgba(236, 234, 242, 0.5)',
-    surface: 'rgba(20, 20, 26, 0.9)',
-    border: 'rgba(236, 234, 242, 0.14)',
-    displayFont: '"JetBrains Mono", ui-monospace, monospace',
-    displayWeight: 600,
-    displayTracking: '-0.03em',
-  },
-  {
     id: 'ember',
     name: 'Ember',
     background:
@@ -114,7 +114,7 @@ export const themes: Theme[] = [
   },
 ]
 
-export const defaultTheme = themes.find((t) => t.id === 'mint')!
+export const defaultTheme = themes.find((t) => t.id === 'noir')!
 
 export function themeById(id: string): Theme {
   return themes.find((t) => t.id === id) ?? defaultTheme

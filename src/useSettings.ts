@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { defaultTheme } from './themes'
+import { defaultAnimation, type AnimationId } from './animations'
 
 export type Settings = {
   min: number
   max: number
   themeId: string
+  animationId: AnimationId
 }
 
 const STORAGE_KEY = 'roll.settings'
@@ -13,6 +15,7 @@ export const defaultSettings: Settings = {
   min: 1,
   max: 100,
   themeId: defaultTheme.id,
+  animationId: defaultAnimation.id,
 }
 
 function load(): Settings {

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { themes } from '../themes'
+import { animations } from '../animations'
 import type { Settings } from '../useSettings'
 
 type Props = {
@@ -98,6 +99,23 @@ export function SettingsDialog({ open, onClose, settings, onChange }: Props) {
                 </span>
               </span>
               <span className="theme-name">{t.name}</span>
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset className="settings-group">
+        <legend>Animation</legend>
+        <div className="animation-grid">
+          {animations.map((a) => (
+            <button
+              key={a.id}
+              className={`animation-option${a.id === settings.animationId ? ' is-active' : ''}`}
+              onClick={() => onChange({ ...settings, animationId: a.id })}
+              aria-pressed={a.id === settings.animationId}
+            >
+              <span className="animation-name">{a.name}</span>
+              <span className="animation-description">{a.description}</span>
             </button>
           ))}
         </div>
