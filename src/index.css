@@ -8,6 +8,9 @@ html,
 body,
 #root {
   height: 100%;
+  /* The app is a fixed, single-screen layout — nothing here should ever scroll the
+     page, and an animation overrunning its bounds must not be able to cause it. */
+  overflow: hidden;
 }
 
 body {
@@ -61,6 +64,7 @@ body {
   flex: 1;
   place-items: center;
   min-height: 0;
+  min-width: 0;
   /* Without perspective the flip's rotateX reads as a flat vertical squash. */
   perspective: 1200px;
 }

@@ -155,14 +155,19 @@ export function Picker({ min, max, theme, animation }: Props) {
     if (!el) return
     const style = getComputedStyle(el)
     const rect = el.getBoundingClientRect()
+    const stage = el.parentElement?.getBoundingClientRect()
     setMetrics({
       // Canvas font shorthand needs weight and size baked in; the DOM is the source
       // of truth so the particles match the rendered glyphs exactly.
       font: `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`,
       letterSpacing: style.letterSpacing === 'normal' ? '0px' : style.letterSpacing,
       color: style.color,
-      // Room around the glyphs for the particles to scatter into.
-      box: [rect.width * 2, rect.height * 1.9],
+      // Room around the glyphs for the particles to scatter into, but never past the
+      // stage — an oversized canvas spills off screen and makes the page scrollable.
+      box: [
+        Math.min(rect.width * 2, stage?.width ?? rect.width),
+        Math.min(rect.height * 1.9, stage?.height ?? rect.height),
+      ],
     })
     const to = String(randomInt(min, max))
     setCloud({ from: display, to })
