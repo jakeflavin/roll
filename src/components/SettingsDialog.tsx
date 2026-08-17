@@ -27,8 +27,18 @@ export function SettingsDialog({ open, onClose, settings, onChange }: Props) {
     if (min !== settings.min || max !== settings.max) onChange({ ...settings, min, max })
   }
 
+  // Backdrop clicks are dispatched on the dialog itself, so a hit test against its
+  // box is what separates "clicked the backdrop" from "clicked inside the drawer".
+  const onDialogClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+    if (e.target !== ref.current) return
+    const { top, right, bottom, left } = ref.current.getBoundingClientRect()
+    const outside =
+      e.clientX < left || e.clientX > right || e.clientY < top || e.clientY > bottom
+    if (outside) onClose()
+  }
+
   return (
-    <dialog ref={ref} className="settings" onClose={onClose}>
+    <dialog ref={ref} className="settings" onClose={onClose} onClick={onDialogClick}>
       <div className="settings-header">
         <h2>Settings</h2>
         <button className="icon-button" onClick={onClose} aria-label="Close settings">
