@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { themes } from '../themes'
 import { animations } from '../animations'
+import { sources } from '../sources'
 import type { Settings } from '../useSettings'
 
 type Props = {
@@ -48,28 +49,66 @@ export function SettingsDialog({ open, onClose, settings, onChange }: Props) {
       </div>
 
       <fieldset className="settings-group">
-        <legend>Number range</legend>
-        <div className="range-row">
-          <label>
-            Min
-            <input
-              type="number"
-              value={settings.min}
-              onChange={(e) => onChange({ ...settings, min: Number(e.target.value) })}
-              onBlur={commitRange}
-            />
-          </label>
-          <label>
-            Max
-            <input
-              type="number"
-              value={settings.max}
-              onChange={(e) => onChange({ ...settings, max: Number(e.target.value) })}
-              onBlur={commitRange}
-            />
-          </label>
+        <legend>Pick from</legend>
+        <div className="source-grid">
+          {sources.map((s) => (
+            <button
+              key={s.id}
+              className={`chip${s.id === settings.sourceId ? ' is-active' : ''}`}
+              onClick={() => onChange({ ...settings, sourceId: s.id })}
+              aria-pressed={s.id === settings.sourceId}
+            >
+              {s.name}
+            </button>
+          ))}
         </div>
       </fieldset>
+
+      {/* Options belong to a single source, so they appear only with that source. */}
+      {settings.sourceId === 'number' && (
+        <fieldset className="settings-group">
+          <legend>Number range</legend>
+          <div className="range-row">
+            <label>
+              Min
+              <input
+                type="number"
+                value={settings.min}
+                onChange={(e) => onChange({ ...settings, min: Number(e.target.value) })}
+                onBlur={commitRange}
+              />
+            </label>
+            <label>
+              Max
+              <input
+                type="number"
+                value={settings.max}
+                onChange={(e) => onChange({ ...settings, max: Number(e.target.value) })}
+                onBlur={commitRange}
+              />
+            </label>
+          </div>
+        </fieldset>
+      )}
+
+      {settings.sourceId === 'letter' && (
+        <fieldset className="settings-group">
+          <legend>Letter case</legend>
+          {/* Associated by id rather than nested: a checkbox inside its own label gets
+              the click twice — once directly, once forwarded — and lands back where
+              it started. */}
+          <div className="switch-row">
+            <label htmlFor="both-cases">Include lowercase</label>
+            <input
+              id="both-cases"
+              type="checkbox"
+              role="switch"
+              checked={settings.bothCases}
+              onChange={(e) => onChange({ ...settings, bothCases: e.target.checked })}
+            />
+          </div>
+        </fieldset>
+      )}
 
       <fieldset className="settings-group">
         <legend>Theme</legend>

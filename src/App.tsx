@@ -1,14 +1,24 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Settings as SettingsIcon } from 'lucide-react'
 import { Picker } from './components/Picker'
 import { SettingsDialog } from './components/SettingsDialog'
 import { themeById } from './themes'
+import { createSource } from './sources'
 import { useSettings } from './useSettings'
 
 export default function App() {
   const [settings, setSettings] = useSettings()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const theme = themeById(settings.themeId)
+
+  const { sourceId, min, max, bothCases } = settings
+  // Only the options that actually define the pool, so changing the theme or the
+  // animation does not reseed the value on screen.
+  const sourceKey = `${sourceId}:${min}:${max}:${bothCases}`
+  const source = useMemo(
+    () => createSource({ sourceId, min, max, bothCases }),
+    [sourceId, min, max, bothCases],
+  )
 
   useEffect(() => {
     const root = document.documentElement
@@ -34,8 +44,8 @@ export default function App() {
 
       <main className="app-main">
         <Picker
-          min={settings.min}
-          max={settings.max}
+          source={source}
+          sourceKey={sourceKey}
           theme={theme}
           animation={settings.animationId}
         />

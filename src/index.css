@@ -70,9 +70,12 @@ body {
 }
 
 .picker-value {
-  font-size: clamp(6rem, 26vw, 18rem);
-  line-height: 1;
+  --display-size: clamp(6rem, 26vw, 18rem);
+  font-size: var(--display-size);
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
+  text-align: center;
+  text-wrap: balance;
   user-select: none;
 }
 
@@ -249,6 +252,76 @@ body {
   padding: 0 0 10px;
   font-size: 13px;
   color: var(--muted);
+}
+
+.source-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.chip.is-active {
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.switch-row label {
+  cursor: pointer;
+}
+
+.switch-row input {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.switch-row input::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: var(--text);
+  border-radius: 50%;
+  opacity: 0.55;
+  transform: translateY(-50%);
+  transition: left 150ms ease, opacity 150ms ease;
+}
+
+.switch-row input:checked {
+  background: color-mix(in srgb, var(--text) 20%, transparent);
+}
+
+.switch-row input:checked::after {
+  left: 21px;
+  opacity: 1;
 }
 
 .range-row {

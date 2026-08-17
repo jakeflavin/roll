@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import type { Theme } from '../themes'
 import { animationById, type AnimationId } from '../animations'
+import type { PickSource } from '../sources'
 import { RevealCloud } from './RevealCloud'
 
 const ROLL_MS = 1500
@@ -12,14 +13,6 @@ const FLIP_COUNT = 3
 const REVEAL_MS = 1600
 // The tail of the reveal, where the canvas cross-fades into the real text.
 const HANDOFF_MS = 260
-
-function randomInt(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min
-}
-
-function randomDigit() {
-  return String(Math.floor(Math.random() * 10))
-}
 
 /**
  * One flip is 0 → -90 (edge-on) → +90 → 0. The jump across the edge-on instant is
@@ -42,15 +35,27 @@ function flipKeyframes(count: number) {
 
 const FLIP_FRAMES = flipKeyframes(FLIP_COUNT)
 
+/** Values up to this many characters render at full size; longer ones scale down. */
+const FULL_SIZE_CHARS = 5
+
+function fitScale(value: string) {
+  return Math.min(1, FULL_SIZE_CHARS / Math.max([...value].length, 1))
+}
+
 type Props = {
-  min: number
-  max: number
+  source: PickSource
+  /** Changes whenever the source or its options change, which reseeds the value. */
+  sourceKey: string
   theme: Theme
   animation: AnimationId
 }
 
-export function Picker({ min, max, theme, animation }: Props) {
-  const [display, setDisplay] = useState(() => String(randomInt(min, max)))
+export function Picker({ source, sourceKey, theme, animation }: Props) {
+  const [display, setDisplay] = useState(() => source.pick())
+  // Held in a ref so the animation callbacks are not rebuilt, and mid-run timers are
+  // not stranded, every time the source object's identity changes.
+  const sourceRef = useRef(source)
+  sourceRef.current = source
   const [busy, setBusy] = useState(false)
   // While set, the value is drawn as a particle cloud on canvas instead of as text.
   const [cloud, setCloud] = useState<{ from: string; to: string } | null>(null)
@@ -78,12 +83,13 @@ export function Picker({ min, max, theme, animation }: Props) {
     timers.current.push(setTimeout(fn, ms))
   }
 
-  // A range change makes the showing value stale, so reseed inside the new range.
+  // A different source makes the showing value stale, so reseed from the new one.
   useEffect(() => {
     stop()
-    setDisplay(String(randomInt(min, max)))
+    setDisplay(sourceRef.current.pick())
     setBusy(false)
-  }, [min, max])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sourceKey])
 
   // Switching animations mid-cover would strand the number behind a cover that the
   // other animations have no way to lift.
@@ -94,8 +100,8 @@ export function Picker({ min, max, theme, animation }: Props) {
 
   useEffect(() => stop, [])
 
-  const settle = useCallback((final: number) => {
-    setDisplay(String(final))
+  const settle = useCallback((final: string) => {
+    setDisplay(final)
     setSettleKey((k) => k + 1)
     setBusy(false)
   }, [])
@@ -106,21 +112,21 @@ export function Picker({ min, max, theme, animation }: Props) {
 
     const tick = (now: number) => {
       const t = (now - start) / ROLL_MS
-      if (t >= 1) return settle(randomInt(min, max))
+      if (t >= 1) return settle(sourceRef.current.pick())
       // Swaps start fast and stretch out cubically, so the reel reads as slowing down.
       if (now - lastSwap >= 40 + 300 * t ** 3) {
         lastSwap = now
-        setDisplay(String(randomInt(min, max)))
+        setDisplay(sourceRef.current.pick())
       }
       frame.current = requestAnimationFrame(tick)
     }
 
     frame.current = requestAnimationFrame(tick)
-  }, [min, max, settle])
+  }, [settle])
 
   const runScramble = useCallback(() => {
-    const final = randomInt(min, max)
-    const chars = String(final).split('')
+    const final = sourceRef.current.pick()
+    const chars = [...final]
     const start = performance.now()
 
     const tick = (now: number) => {
@@ -128,27 +134,30 @@ export function Picker({ min, max, theme, animation }: Props) {
       if (t >= 1) return settle(final)
       // Each column locks at its own point in the run, left to right, so the number
       // resolves progressively instead of all at once.
-      const next = chars.map((c, i) => (t >= (i + 1) / (chars.length + 1) ? c : randomDigit()))
+      const next = chars.map((c, i) =>
+        // Spaces stay put; churning them just makes the word jitter in width.
+        t >= (i + 1) / (chars.length + 1) || c === ' ' ? c : sourceRef.current.scrambleChar(),
+      )
       setDisplay(next.join(''))
       frame.current = requestAnimationFrame(tick)
     }
 
     frame.current = requestAnimationFrame(tick)
-  }, [min, max, settle])
+  }, [settle])
 
   const runFlip = useCallback(() => {
     setFlipping(true)
     // A value swap per flip, each while the card is edge-on, so the card is never
     // seen changing. The last one lands on the value that is kept.
     for (let i = 0; i < FLIP_COUNT; i++) {
-      const next = String(randomInt(min, max))
+      const next = sourceRef.current.pick()
       after((FLIP_MS * (i + 0.5)) / FLIP_COUNT, () => setDisplay(next))
     }
     after(FLIP_MS, () => {
       setFlipping(false)
       setBusy(false)
     })
-  }, [min, max])
+  }, [])
 
   const runReveal = useCallback(() => {
     const el = valueRef.current
@@ -169,7 +178,7 @@ export function Picker({ min, max, theme, animation }: Props) {
         Math.min(rect.height * 1.9, stage?.height ?? rect.height),
       ],
     })
-    const to = String(randomInt(min, max))
+    const to = sourceRef.current.pick()
     setCloud({ from: display, to })
     // Swap in the real text while the particles are all but home, then let the two
     // cross-fade — cutting from canvas to text at the very end reads as a jump.
@@ -177,7 +186,7 @@ export function Picker({ min, max, theme, animation }: Props) {
       setDisplay(to)
       setHandoff(true)
     })
-  }, [min, max, display])
+  }, [display])
 
   const onCloudDone = useCallback(() => {
     setCloud(null)
@@ -271,6 +280,9 @@ export function Picker({ min, max, theme, animation }: Props) {
             fontFamily: theme.displayFont,
             fontWeight: theme.displayWeight,
             letterSpacing: theme.displayTracking,
+            // Long values (state names, "Embarrassed") would run off screen at the
+            // size a two-digit number wants, so the type shrinks as the value grows.
+            fontSize: `calc(var(--display-size) * ${fitScale(display)})`,
           }}
         >
           {display}
