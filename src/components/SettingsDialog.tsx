@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown, ChevronLeft, History, Keyboard, X } from 'lucide-react'
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  History,
+  Keyboard,
+  Plus,
+  X,
+} from 'lucide-react'
 import { themes } from '../themes'
 import { animations } from '../animations'
 import { allSources, sources, type SourceId } from '../sources'
@@ -86,16 +94,15 @@ export function SettingsDialog({
   const source =
     available.find((s) => s.id === (viewing ?? settings.sourceIds[0])) ?? available[0]
 
-  /** Everything about one group lives under that group's own row: its options, and the
-   *  way into its contents. With several groups selected there is then nothing to work
-   *  out about which heading applies to which. */
-  const groupOptions = (id: SourceId) => {
+  /** A group's own settings, as rows inside that group's card. They read as belonging
+   *  to the group above them rather than as more controls in a flat stack. */
+  const groupRows = (id: SourceId) => {
     const group = available.find((s) => s.id === id)
-    const blocks = []
+    const rows = []
 
     if (id === 'number') {
-      blocks.push(
-        <div className="group-options" key="range">
+      rows.push(
+        <div className="group-field" key="range">
           <label>
             Min
             <input
@@ -119,10 +126,10 @@ export function SettingsDialog({
     }
 
     if (id === 'letter') {
-      blocks.push(
+      rows.push(
         // Associated by id rather than nested: a checkbox inside its own label gets the
         // click twice — once directly, once forwarded — and lands back where it started.
-        <div className="group-options" key="case">
+        <div className="group-field is-switch" key="case">
           <label htmlFor="both-cases">Include lowercase</label>
           <input
             id="both-cases"
@@ -135,37 +142,39 @@ export function SettingsDialog({
       )
     }
 
+    // Navigation, so it reads as a link with somewhere to go, not as another control
+    // carrying the same weight as the group's own dropdown.
     if (isCustomId(id)) {
-      blocks.push(
-        <div className="group-options" key="edit">
-          <button
-            className="outline-button"
-            onClick={() => {
-              setEditing(id)
-              setPage('list')
-            }}
-          >
-            Edit entries
-          </button>
-        </div>,
+      rows.push(
+        <button
+          className="group-link"
+          key="edit"
+          onClick={() => {
+            setEditing(id)
+            setPage('list')
+          }}
+        >
+          Edit entries
+          <ChevronRight size={15} aria-hidden="true" />
+        </button>,
       )
     } else if (group?.options) {
-      blocks.push(
-        <div className="group-options" key="see">
-          <button
-            className="outline-button"
-            onClick={() => {
-              setViewing(id)
-              setPage('options')
-            }}
-          >
-            See all {group.options.length}
-          </button>
-        </div>,
+      rows.push(
+        <button
+          className="group-link"
+          key="see"
+          onClick={() => {
+            setViewing(id)
+            setPage('options')
+          }}
+        >
+          See all {group.options.length}
+          <ChevronRight size={15} aria-hidden="true" />
+        </button>,
       )
     }
 
-    return blocks
+    return rows
   }
 
   const header = (title: string, onBack?: () => void) => (
@@ -234,17 +243,15 @@ export function SettingsDialog({
 
           <fieldset className="settings-group">
             <legend>Pick from</legend>
-            {/* Every group is the same kind of row, so their right edges line up and
-                any of them can be removed. Each dropdown offers its own group plus
-                whatever is unselected, so nothing can be chosen twice. */}
+            {/* One card per group: the dropdown chooses it, the rows beneath belong
+                to it. Cards keep several groups from reading as one flat stack of
+                identical boxes. */}
             {settings.sourceIds.map((id, i) => (
-              <div className="group-stack" key={`${id}-${i}`}>
-                <div className="group-row">
-                  {/* The native arrow sits hard against the control's edge and cannot
-                      be moved, so it is replaced by one we can place and theme. */}
+              <div className="group-card" key={`${id}-${i}`}>
+                <div className="group-head">
                   <div className="select-wrap">
                     <select
-                      className="select"
+                      className="select is-bare"
                       value={id}
                       onChange={(e) =>
                         onChange({
@@ -280,7 +287,7 @@ export function SettingsDialog({
                   </div>
                   {settings.sourceIds.length > 1 && (
                     <button
-                      className="icon-button"
+                      className="ghost-button"
                       onClick={() =>
                         onChange({
                           ...settings,
@@ -293,44 +300,45 @@ export function SettingsDialog({
                     </button>
                   )}
                 </div>
-                {groupOptions(id)}
+                {groupRows(id)}
               </div>
             ))}
 
-            {unused.length > 0 && (
-              <div className="select-wrap add-group">
-                <select
-                  className="select"
-                  value=""
-                  onChange={(e) =>
-                    e.target.value &&
-                    onChange({ ...settings, sourceIds: [...settings.sourceIds, e.target.value] })
-                  }
-                >
-                  <option value="">+ Add another group</option>
-                  {unused.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="select-arrow" size={16} aria-hidden="true" />
-              </div>
-            )}
-
-            <button
-              className="outline-button is-wide"
-              onClick={() => {
-                onCreateList()
-                // The new list takes the first slot, and is what the editor should show.
-                setEditing(null)
-                // Straight into the editor: a new list is empty, so leaving the user on
-                // this page makes the button look like it did nothing.
-                setPage('list')
-              }}
-            >
-              New list
-            </button>
+            <div className="add-row">
+              {unused.length > 0 && (
+                <div className="select-wrap is-add">
+                  <select
+                    className="select is-add"
+                    value=""
+                    onChange={(e) =>
+                      e.target.value &&
+                      onChange({ ...settings, sourceIds: [...settings.sourceIds, e.target.value] })
+                    }
+                  >
+                    <option value="">Add a group</option>
+                    {unused.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                  <Plus className="select-arrow is-left" size={15} aria-hidden="true" />
+                </div>
+              )}
+              <button
+                className="link-button"
+                onClick={() => {
+                  onCreateList()
+                  // The new list takes the first slot, and is what the editor shows.
+                  setEditing(null)
+                  // Straight into the editor: a new list is empty, so leaving the user
+                  // here makes the button look like it did nothing.
+                  setPage('list')
+                }}
+              >
+                New list
+              </button>
+            </div>
           </fieldset>
 
           {/* A row rather than a titled group: the label on the switch says the whole

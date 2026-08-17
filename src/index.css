@@ -446,76 +446,141 @@ body {
   gap: 16px;
 }
 
-/* A group's own options are indented under it, so which group they belong to is
-   positional rather than something to work out from a heading. */
-.group-stack {
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap-row);
+/* A group is a card: the dropdown names it, the rows beneath configure it. Without
+   the card, a dropdown and its settings were indistinguishable from the next group's. */
+.group-card {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
 }
 
-.group-options {
+.group-head {
+  display: flex;
+  align-items: center;
+}
+
+.group-head .select-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The card already draws the border, so the control inside must not draw another. */
+.select.is-bare {
+  font-weight: 500;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.ghost-button {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-right: 4px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.ghost-button:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+}
+
+/* A group's own settings: a hairline separates them from the choice above, and the
+   label sits quiet so the group's name stays the loudest thing in the card. */
+.group-field {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-left: 11px;
-  padding-left: 12px;
-  border-left: 1px solid var(--border);
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
 }
 
-.group-options .outline-button {
-  width: 100%;
-}
-
-.group-options label:not([for='both-cases']) {
+.group-field label {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 6px;
-  font-size: 13px;
+  gap: 5px;
+  font-size: 12px;
   color: var(--muted);
 }
 
-.group-options label[for='both-cases'] {
-  flex: 1;
+.group-field.is-switch {
+  justify-content: space-between;
+}
+
+.group-field.is-switch label {
+  flex-direction: row;
+  align-items: center;
   font-size: 14px;
   color: var(--text);
   cursor: pointer;
 }
 
-.group-options input[type='number'] {
+.group-field input[type='number'] {
   width: 100%;
-  padding: 9px 12px;
+  padding: 7px 10px;
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--text);
   background: transparent;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
-.group-options input[type='number']:focus-visible {
+.group-field input[type='number']:focus-visible {
   outline: 2px solid var(--text);
   outline-offset: 1px;
 }
 
-/* An extra group and its remove button share a row; the dropdown takes the space the
-   button does not. */
-.group-row {
+/* Navigation, so it reads as a way through rather than as another equal control. */
+.group-link {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--border);
+  cursor: pointer;
 }
 
-.group-row .select-wrap {
+.group-link:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+/* Adding is an action, not a group, so it does not wear a group's solid border. */
+.add-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.select-wrap.is-add {
   flex: 1;
   min-width: 0;
 }
 
-.group-row .icon-button {
-  flex: 0 0 auto;
-  width: 42px;
-  height: auto;
-  border-radius: 10px;
+.select.is-add {
+  padding: 9px 12px 9px 32px;
+  font-size: 14px;
+  color: var(--muted);
+  border-style: dashed;
+}
+
+.select-arrow.is-left {
+  right: auto;
+  left: 12px;
 }
 
 .text-input {
@@ -718,7 +783,7 @@ body {
 }
 
 .switch-row input,
-.group-options input[type='checkbox'] {
+.group-field input[type='checkbox'] {
   position: relative;
   width: 44px;
   height: 26px;
@@ -732,7 +797,7 @@ body {
 }
 
 .switch-row input::after,
-.group-options input[type='checkbox']::after {
+.group-field input[type='checkbox']::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -747,12 +812,12 @@ body {
 }
 
 .switch-row input:checked,
-.group-options input[type='checkbox']:checked {
+.group-field input[type='checkbox']:checked {
   background: color-mix(in srgb, var(--text) 20%, transparent);
 }
 
 .switch-row input:checked::after,
-.group-options input[type='checkbox']:checked::after {
+.group-field input[type='checkbox']:checked::after {
   left: 21px;
   opacity: 1;
 }
