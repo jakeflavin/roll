@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronLeft, X } from 'lucide-react'
+import { ChevronDown, ChevronLeft, X } from 'lucide-react'
 import { themes } from '../themes'
 import { animations } from '../animations'
 import { sourceById, sources, type SourceId } from '../sources'
@@ -82,19 +82,24 @@ export function SettingsDialog({ open, onClose, settings, onChange }: Props) {
 
           <fieldset className="settings-group">
             <legend>Pick from</legend>
-            <select
-              className="select"
-              value={settings.sourceId}
-              onChange={(e) =>
-                onChange({ ...settings, sourceId: e.target.value as SourceId })
-              }
-            >
-              {sources.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
+            {/* The native arrow sits hard against the control's edge and cannot be
+                moved, so it is replaced by one we can place and theme. */}
+            <div className="select-wrap">
+              <select
+                className="select"
+                value={settings.sourceId}
+                onChange={(e) =>
+                  onChange({ ...settings, sourceId: e.target.value as SourceId })
+                }
+              >
+                {sources.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="select-arrow" size={16} aria-hidden="true" />
+            </div>
 
             {source.options && (
               <button className="link-button" onClick={() => setShowingOptions(true)}>

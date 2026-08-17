@@ -248,22 +248,39 @@ body {
   margin-bottom: 0;
 }
 
+/* The controls below each title sit inside a 1px border, so the title needs the same
+   inset to line up with their contents rather than with their outer edge. */
 .settings-group legend {
-  padding: 0 0 10px;
+  padding: 0 0 10px 1px;
   font-size: 13px;
   color: var(--muted);
 }
 
+.select-wrap {
+  position: relative;
+  display: flex;
+}
+
 .select {
   width: 100%;
-  padding: 10px 12px;
+  padding: 10px 38px 10px 12px;
   font: inherit;
   font-size: 15px;
   color: var(--text);
+  appearance: none;
   background: transparent;
   border: 1px solid var(--border);
   border-radius: 10px;
   cursor: pointer;
+}
+
+.select-arrow {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  color: var(--muted);
+  pointer-events: none;
+  transform: translateY(-50%);
 }
 
 /* The popup list is drawn by the OS, so its options need a readable background of
@@ -275,7 +292,7 @@ body {
 
 .link-button {
   margin-top: 10px;
-  padding: 0;
+  padding: 0 0 0 1px;
   font: inherit;
   font-size: 13px;
   color: var(--muted);
@@ -292,13 +309,16 @@ body {
 
 .settings-divider {
   height: 0;
-  margin: 4px 0 20px;
+  /* Larger than the groups' own bottom margin, which it collapses against — a smaller
+     value here would be swallowed and leave the gaps lopsided. */
+  margin: 28px 0;
   border: 0;
   border-top: 1px solid var(--border);
 }
 
 .options-count {
   margin: 0 0 12px;
+  padding-left: 1px;
   font-size: 13px;
   color: var(--muted);
 }
