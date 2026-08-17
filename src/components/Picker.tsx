@@ -41,8 +41,8 @@ type Props = {
   allowRepeat: boolean
   onPick: (sourceId: string, value: string) => void
   onStartOver: (sourceKeys: string[]) => void
-  leadingAction?: ReactNode
-  trailingAction?: ReactNode
+  /** Secondary controls, grouped opposite the roll button. */
+  tools?: ReactNode
   /** Values carried in from the URL, one per slot, used only where they still fit. */
   initialValues?: string[]
   onSettle?: (values: string[]) => void
@@ -55,8 +55,7 @@ export function Picker({
   allowRepeat,
   onPick,
   onStartOver,
-  leadingAction,
-  trailingAction,
+  tools,
   initialValues = [],
   onSettle,
 }: Props) {
@@ -171,12 +170,14 @@ export function Picker({
         ))}
       </div>
 
+      {/* Opposite corners: the secondary controls to one side, the roll button to the
+          other. Neither is centred, and the button is sized to its label rather than to
+          the window — a full-width one became a 700px target on a desktop. */}
       <div className="picker-actions">
-        {leadingAction}
+        <div className="picker-tools">{tools}</div>
         <button className="roll-button" onClick={roll} disabled={busy}>
           {busy ? meta.busyLabel : everySlotSpent ? 'Start over' : meta.name}
         </button>
-        {trailingAction}
       </div>
     </div>
   )

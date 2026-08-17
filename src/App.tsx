@@ -156,15 +156,17 @@ export default function App() {
           onStartOver={onStartOver}
           initialValues={results}
           onSettle={setResults}
-          leadingAction={<ShareButton url={shareUrl} />}
-          trailingAction={
-            <button
-              className="icon-button"
-              onClick={() => setSessionOpen(true)}
-              aria-label="View this session"
-            >
-              <History size={18} />
-            </button>
+          tools={
+            <>
+              <ShareButton url={shareUrl} />
+              <button
+                className="icon-button"
+                onClick={() => setSessionOpen(true)}
+                aria-label="View this session"
+              >
+                <History size={18} />
+              </button>
+            </>
           }
         />
       </main>
