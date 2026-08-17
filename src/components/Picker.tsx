@@ -6,10 +6,16 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react'
-import { animationById, animationDuration, type AnimationId } from '../animations'
+import {
+  animationById,
+  animationDuration,
+  isCelebration,
+  type AnimationId,
+} from '../animations'
 import type { PickSource } from '../sources'
 import type { Theme } from '../themes'
 import { isDrawerOpen, isTypingTarget, targetElement } from '../shortcuts'
+import { Celebration } from './Celebration'
 import { PickedValue } from './PickedValue'
 
 /** One pool on the stage. A roll takes a value from each. */
@@ -63,7 +69,14 @@ export function Picker({
   const [targets, setTargets] = useState<Array<string | null>>([])
   const [busy, setBusy] = useState(false)
   const [exhausted, setExhausted] = useState<boolean[]>([])
+  // Confetti and fireworks play across the whole stage rather than over one value, so
+  // the picker owns them: sized to a slot's own box, the pieces left the canvas at once.
+  const [party, setParty] = useState<{ width: number; height: number; run: number } | null>(
+    null,
+  )
 
+  const stageRef = useRef<HTMLDivElement>(null)
+  const partyTimer = useRef(0)
   const timer = useRef(0)
   const settledRef = useRef<string[]>([])
   const onSettleRef = useRef(onSettle)
@@ -90,7 +103,13 @@ export function Picker({
     settledRef.current = seedsRef.current
   }
 
-  useEffect(() => () => clearTimeout(timer.current), [])
+  useEffect(
+    () => () => {
+      clearTimeout(timer.current)
+      clearTimeout(partyTimer.current)
+    },
+    [],
+  )
 
   // Report the seeds once so the URL carries them before anything is rolled.
   useEffect(() => {
@@ -113,14 +132,22 @@ export function Picker({
 
     setTargets(nextTargets)
     setExhausted(nextTargets.map((target) => target === null))
-    setRunId((id) => id + 1)
+    const id = runId + 1
+    setRunId(id)
 
     // Only run the clock if something is actually animating.
     if (nextTargets.every((target) => target === null)) return
     setBusy(true)
     clearTimeout(timer.current)
     timer.current = setTimeout(() => setBusy(false), animationDuration(animation))
-  }, [busy, exhausted, slots, allowRepeat, animation, onStartOver])
+
+    // Starts with the run: the celebration is the cover the value changes behind.
+    clearTimeout(partyTimer.current)
+    if (isCelebration(animation)) {
+      const stage = stageRef.current?.getBoundingClientRect()
+      if (stage) setParty({ width: stage.width, height: stage.height, run: id })
+    }
+  }, [busy, runId, exhausted, slots, allowRepeat, animation, onStartOver])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -152,7 +179,11 @@ export function Picker({
     <div className="picker">
       {/* --slots lets the stylesheet cap each value against the stage's own height, so
           adding groups shrinks the type rather than pushing any of it out of view. */}
-      <div className="picker-slots" style={{ '--slots': slots.length } as CSSProperties}>
+      <div
+        className="picker-slots"
+        ref={stageRef}
+        style={{ '--slots': slots.length } as CSSProperties}
+      >
         {slots.map((slot, i) => (
           <PickedValue
             key={slot.sourceKey}
@@ -168,6 +199,17 @@ export function Picker({
             onSettled={(value) => onSlotSettled(i, value)}
           />
         ))}
+
+        {party && (
+          <Celebration
+            key={party.run}
+            kind={animation === 'fireworks' ? 'fireworks' : 'confetti'}
+            width={party.width}
+            height={party.height}
+            durationMs={animationDuration(animation)}
+            onDone={() => setParty(null)}
+          />
+        )}
       </div>
 
       {/* Opposite corners: the secondary controls to one side, the roll button to the

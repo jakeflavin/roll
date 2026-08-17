@@ -62,6 +62,7 @@ body {
 }
 
 .picker-slots {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -104,6 +105,15 @@ body {
   perspective: 1200px;
 }
 
+/* Fades the value behind a celebration, and back once it has changed. */
+.value-cover {
+  transition: opacity 220ms ease;
+}
+
+.value-cover[data-covered] {
+  opacity: 0;
+}
+
 .picker-value {
   --display-size: clamp(6rem, 26vw, 18rem);
   font-size: var(--display-size);
@@ -119,6 +129,15 @@ body {
    as the new number. */
 .reveal-canvas {
   position: absolute;
+  pointer-events: none;
+}
+
+/* Covers the whole stage and sits above the values, without taking their clicks. */
+.celebration-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
   pointer-events: none;
 }
 
