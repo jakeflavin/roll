@@ -105,8 +105,13 @@ export function PickedValue({
     setDisplay(seed)
   }, [seed, stop])
 
+  // Only an actual new run animates. Without this, swapping a slot's group remounts
+  // this component, whose effect would then replay the previous run's target and
+  // record it against the group that just replaced it.
+  const lastRun = useRef(runId)
   useEffect(() => {
-    if (runId === 0) return
+    if (lastRun.current === runId) return
+    lastRun.current = runId
     stop()
 
     if (target === null) {
