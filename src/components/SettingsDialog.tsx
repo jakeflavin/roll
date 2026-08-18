@@ -17,7 +17,7 @@ import type { Settings } from '../useSettings'
 import { shortcuts } from '../shortcuts'
 import { useDialog } from '../useDialog'
 import { BackupControls } from './BackupControls'
-import { CustomThemeEditor } from './CustomThemeEditor'
+import { CustomThemeControls } from './CustomThemeControls'
 import { ListEditor } from './ListEditor'
 
 type Props = {
@@ -56,7 +56,7 @@ export function SettingsDialog({
   const { ref, onBackdropClick } = useDialog(open, onClose)
   // The drawer has two pages: the settings themselves, and the pool of the selected
   // source. Kept here rather than in app state — it is drawer-local navigation.
-  const [page, setPage] = useState<'main' | 'options' | 'list' | 'shortcuts' | 'theme'>('main')
+  const [page, setPage] = useState<'main' | 'options' | 'list' | 'shortcuts'>('main')
   // Which group a sub-page is about, now that any row can open one.
   const [editing, setEditing] = useState<SourceId | null>(null)
   const [viewing, setViewing] = useState<SourceId | null>(null)
@@ -204,11 +204,6 @@ export function SettingsDialog({
               </li>
             ))}
           </ul>
-        </>
-      ) : page === 'theme' ? (
-        <>
-          {header('Custom theme', () => setPage('main'))}
-          <CustomThemeEditor custom={settings.customTheme} onChange={patchCustom} sample={sample} />
         </>
       ) : page === 'list' && editingList ? (
         <>
@@ -384,14 +379,9 @@ export function SettingsDialog({
                   <span className="theme-name">{t.name}</span>
                 </button>
               ))}
-              {/* Selects the theme and opens its editor in one press: an empty custom
-                  theme is not worth selecting on its own. */}
               <button
                 className={`theme-option${settings.themeId === CUSTOM_THEME_ID ? ' is-active' : ''}`}
-                onClick={() => {
-                  onChange({ ...settings, themeId: CUSTOM_THEME_ID })
-                  setPage('theme')
-                }}
+                onClick={() => onChange({ ...settings, themeId: CUSTOM_THEME_ID })}
                 aria-pressed={settings.themeId === CUSTOM_THEME_ID}
               >
                 <span
@@ -416,6 +406,14 @@ export function SettingsDialog({
                 <span className="theme-name">Custom</span>
               </button>
             </div>
+
+            {/* Only while it is the theme in use, so the page behind the drawer is the
+                preview and the section stays short for everybody else. */}
+            {settings.themeId === CUSTOM_THEME_ID && (
+              <div className="group-card">
+                <CustomThemeControls custom={settings.customTheme} onChange={patchCustom} />
+              </div>
+            )}
           </fieldset>
 
           <fieldset className="settings-group">

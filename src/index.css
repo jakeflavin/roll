@@ -142,15 +142,13 @@ body {
   pointer-events: none;
 }
 
-.animation-grid,
-.choice-grid {
+.animation-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
-.animation-option,
-.choice-option {
+.animation-option {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -164,8 +162,7 @@ body {
   cursor: pointer;
 }
 
-.animation-option.is-active,
-.choice-option.is-active {
+.animation-option.is-active {
   outline: 2px solid var(--text);
   outline-offset: 1px;
 }
@@ -955,31 +952,55 @@ body {
   font-size: 13px;
 }
 
-/* The custom theme's own page: a large preview of what is being edited, then the
-   controls that build it. */
-.custom-preview {
-  display: grid;
-  place-items: center;
-  height: 132px;
-  margin-bottom: var(--gap-block);
-  padding: 0 12px;
-  border: 1px solid transparent;
-  border-radius: 14px;
+/* The custom theme's rows, shown in a card under the theme grid. */
+.segmented {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
 }
 
-.custom-preview-value {
-  max-width: 100%;
-  font-size: 36px;
-  line-height: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.segmented.is-inline {
+  flex: 1;
+  padding: 3px;
 }
 
-.choice-option {
-  /* One word each, so they read better centred than the animation cards do. */
-  align-items: center;
-  text-align: center;
+.segment-button {
+  flex: 1;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.segment-button.is-active {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 12%, transparent);
+}
+
+.group-field.is-kinds,
+.group-field.is-image {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Matches the font of a field's own label, for the rows whose control is not one. */
+.field-label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.field-value {
+  min-width: 42px;
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .group-field input[type='color'] {
@@ -997,14 +1018,43 @@ body {
   accent-color: var(--text);
 }
 
-.field-value {
-  min-width: 42px;
-  font-size: 13px;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
+.image-thumb {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 34px;
+  background-position: center;
+  background-size: cover;
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 
-.group-link.is-danger {
-  color: #ff8080;
+.group-field.is-image .outline-button {
+  flex: 1;
+  min-height: 34px;
+  padding: 6px 12px;
+}
+
+/* Sits among a card's rows rather than on the drawer's column, so it carries no
+   surface of its own. */
+.icon-button.is-quiet {
+  width: 34px;
+  height: 34px;
+  color: var(--muted);
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.icon-button.is-quiet:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+}
+
+.outline-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* A hint inside a card lines up with the card's padding, not the drawer's. */
+.settings-hint.is-inset {
+  padding: 0 12px 10px;
 }
