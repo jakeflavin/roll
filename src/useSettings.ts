@@ -19,7 +19,7 @@ export type Settings = {
   animationId: AnimationId
 }
 
-const STORAGE_KEY = 'roll.settings'
+const STORAGE_KEY = 'hat.settings'
 
 export const defaultSettings: Settings = {
   sourceIds: [defaultSource.id],

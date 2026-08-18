@@ -26,7 +26,7 @@ export const emptySession: Session = { entries: [], cycleStart: {} }
 /** Bounded so a long-running session cannot grow without limit. */
 const MAX_ENTRIES = 500
 
-const STORAGE_KEY = 'roll.session'
+const STORAGE_KEY = 'hat.session'
 
 export function loadSession(): Session {
   try {

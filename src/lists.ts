@@ -4,7 +4,7 @@ export type CustomList = {
   items: string[]
 }
 
-const STORAGE_KEY = 'roll.lists'
+const STORAGE_KEY = 'hat.lists'
 
 /** Prefix marks an id as belonging to a user list rather than a built-in source. */
 export const CUSTOM_PREFIX = 'custom:'
