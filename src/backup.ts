@@ -2,14 +2,14 @@ import { animations, type AnimationId } from './animations'
 import { isCustomId, isList, type CustomList } from './lists'
 import { emptySession, type Session, type SessionEntry } from './session'
 import { sources, type SourceId } from './sources'
-import { themes } from './themes'
+import { isThemeId, sanitizeCustomTheme } from './themes'
 import type { Settings } from './useSettings'
 
 /** Bumped only if the shape changes in a way an older file cannot satisfy. */
 export const BACKUP_VERSION = 1
 
 export type Backup = {
-  app: 'roll'
+  app: 'hat'
   version: number
   exportedAt: string
   settings: Settings
@@ -24,7 +24,7 @@ export function buildBackup(
   lists: CustomList[],
 ): Backup {
   return {
-    app: 'roll',
+    app: 'hat',
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
     settings,
@@ -35,7 +35,7 @@ export function buildBackup(
 
 export function backupFilename(now = new Date()) {
   const date = now.toISOString().slice(0, 10)
-  return `roll-${date}.json`
+  return `hat-${date}.json`
 }
 
 type Raw = Record<string, unknown>
@@ -68,7 +68,8 @@ function coerceSettings(raw: unknown, base: Settings, lists: CustomList[] = []):
     max: asInt(r.max, base.max),
     bothCases: asBool(r.bothCases, base.bothCases),
     repeat: asBool(r.repeat, base.repeat),
-    themeId: themes.some((t) => t.id === r.themeId) ? (r.themeId as string) : base.themeId,
+    themeId: isThemeId(r.themeId) ? (r.themeId as string) : base.themeId,
+    customTheme: sanitizeCustomTheme(r.customTheme, base.customTheme),
     animationId: animations.some((a) => a.id === r.animationId)
       ? (r.animationId as AnimationId)
       : base.animationId,
@@ -121,9 +122,12 @@ export function parseBackup(text: string, base: Settings): ParsedBackup {
   }
 
   const data = (raw ?? {}) as Raw
-  if (data.app !== 'roll') throw new BackupError("That file isn't a Roll export.")
+  // 'roll' is what the app was called before it was Hat; those files still load.
+  if (data.app !== 'hat' && data.app !== 'roll') {
+    throw new BackupError("That file isn't a Hat export.")
+  }
   if (typeof data.version !== 'number' || data.version > BACKUP_VERSION) {
-    throw new BackupError('That export came from a newer version of Roll.')
+    throw new BackupError('That export came from a newer version of Hat.')
   }
 
   const lists = Array.isArray(data.lists) ? data.lists.filter(isList) : []

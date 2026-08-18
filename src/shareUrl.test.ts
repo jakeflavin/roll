@@ -84,3 +84,40 @@ describe('hasShareParams', () => {
     expect(hasShareParams(new URLSearchParams(''))).toBe(false)
   })
 })
+
+describe('custom theme in a link', () => {
+  const custom = { ...base.customTheme, from: '#112233', to: '#445566', angle: 200, ink: 'dark' as const }
+
+  it('carries the gradient when the custom theme is the one selected', () => {
+    const params = settingsToParams({ ...base, themeId: 'custom', customTheme: custom })
+    expect(params.get('theme')).toBe('custom')
+    expect(params.get('bg')).toBe('112233-445566-200-dark')
+  })
+
+  it('leaves the gradient out of every other theme’s link', () => {
+    expect(settingsToParams({ ...base, themeId: 'ember' }).has('bg')).toBe(false)
+  })
+
+  it('reads the gradient back out of a link', () => {
+    const params = settingsToParams({ ...base, themeId: 'custom', customTheme: custom })
+    expect(settingsFromParams(params, base).customTheme).toEqual(custom)
+  })
+
+  it('leaves this device’s own image alone, since a refresh reads back its own link', () => {
+    const mine = {
+      ...base,
+      customTheme: { ...base.customTheme, mode: 'image' as const, image: 'data:image/jpeg;base64,a' },
+    }
+    const params = settingsToParams({ ...mine, themeId: 'custom' })
+    const read = settingsFromParams(params, mine)
+    expect(read.customTheme.mode).toBe('image')
+    expect(read.customTheme.image).toBe('data:image/jpeg;base64,a')
+  })
+
+  it('ignores a hand-edited gradient that is not a colour', () => {
+    const params = new URLSearchParams('theme=custom&bg=red-blue-9-light')
+    const read = settingsFromParams(params, base)
+    expect(read.customTheme.from).toBe(base.customTheme.from)
+    expect(read.customTheme.angle).toBe(9)
+  })
+})

@@ -4,7 +4,7 @@ import { Picker } from './components/Picker'
 import { SettingsDialog } from './components/SettingsDialog'
 import { SessionDialog } from './components/SessionDialog'
 import { ShareButton } from './components/ShareButton'
-import { themeById } from './themes'
+import { resolveTheme } from './themes'
 import {
   allSources,
   createSource,
@@ -33,7 +33,7 @@ export default function App() {
     remove: removeList,
     replace: replaceLists,
   } = useLists()
-  const theme = themeById(settings.themeId)
+  const theme = resolveTheme(settings.themeId, settings.customTheme)
 
   const { min, max, bothCases } = settings
 

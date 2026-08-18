@@ -1,6 +1,6 @@
 import { animations, type AnimationId } from './animations'
 import type { SourceId } from './sources'
-import { themes } from './themes'
+import { CUSTOM_THEME_ID, isThemeId, sanitizeCustomTheme, type CustomTheme } from './themes'
 // Type-only, so this module and useSettings do not form a runtime import cycle.
 import type { Settings } from './useSettings'
 
@@ -24,6 +24,13 @@ export function settingsToParams(settings: Settings, values: string[] = []) {
   if (settings.sourceIds.includes('letter')) params.set('lower', settings.bothCases ? '1' : '0')
   params.set('repeat', settings.repeat ? '1' : '0')
   params.set('theme', settings.themeId)
+  // A gradient is four short values, so it travels. An uploaded image would be
+  // hundreds of kilobytes of URL, so it stays on the device that chose it and the
+  // link falls back to the gradient underneath it.
+  if (settings.themeId === CUSTOM_THEME_ID) {
+    const { from, to, angle, ink } = settings.customTheme
+    params.set('bg', [from.slice(1), to.slice(1), angle, ink].join('-'))
+  }
   params.set('anim', settings.animationId)
   return params
 }
@@ -50,9 +57,24 @@ export function settingsFromParams(params: URLSearchParams, base: Settings): Set
     max: readInt(params.get('max'), base.max),
     bothCases: params.has('lower') ? params.get('lower') === '1' : base.bothCases,
     repeat: params.has('repeat') ? params.get('repeat') === '1' : base.repeat,
-    themeId: themes.some((t) => t.id === theme) ? theme! : base.themeId,
+    themeId: isThemeId(theme) ? theme! : base.themeId,
+    customTheme: customFromParam(params.get('bg'), base.customTheme),
     animationId: animations.some((a) => a.id === anim) ? (anim as AnimationId) : base.animationId,
   }
+}
+
+/** `from-to-angle-ink`, with the hexes stripped of their # so the link stays readable. */
+function customFromParam(raw: string | null, base: CustomTheme): CustomTheme {
+  if (!raw) return base
+  const [from, to, angle, ink] = raw.split('-')
+  // Only the four values the link actually carries are taken. Mode and image are left
+  // as this device has them: the app reflects its own settings into the URL, so a
+  // reload reads back a link that never had room for the image, and taking mode from
+  // it would throw the picture away every time the page was refreshed.
+  return sanitizeCustomTheme(
+    { mode: base.mode, image: base.image, from: `#${from}`, to: `#${to}`, angle, ink },
+    base,
+  )
 }
 
 export function hasShareParams(params: URLSearchParams) {

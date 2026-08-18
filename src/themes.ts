@@ -112,10 +112,126 @@ export const themes: Theme[] = [
     displayWeight: 400,
     displayTracking: '-0.02em',
   },
+  {
+    id: 'paper',
+    name: 'Paper',
+    background:
+      'radial-gradient(90% 70% at 50% 0%, #ffffff 0%, transparent 60%),' +
+      'radial-gradient(80% 60% at 10% 100%, #e8e3d6 0%, transparent 62%),' +
+      'linear-gradient(170deg, #faf7f0 0%, #f2ede1 100%)',
+    text: '#16150f',
+    muted: 'rgba(22, 21, 15, 0.55)',
+    surface: 'rgba(255, 255, 255, 0.9)',
+    border: 'rgba(22, 21, 15, 0.16)',
+    displayFont: '"JetBrains Mono", ui-monospace, monospace',
+    displayWeight: 600,
+    displayTracking: '-0.03em',
+  },
 ]
 
 export const defaultTheme = themes.find((t) => t.id === 'noir')!
 
 export function themeById(id: string): Theme {
   return themes.find((t) => t.id === id) ?? defaultTheme
+}
+
+export const CUSTOM_THEME_ID = 'custom'
+
+/**
+ * The one theme the user builds themselves: either a two-colour gradient or a photo
+ * of their own. Stored as its ingredients rather than as finished CSS, so it can be
+ * edited, validated and put in a link.
+ */
+export type CustomTheme = {
+  mode: 'gradient' | 'image'
+  from: string
+  to: string
+  /** Degrees, in CSS terms: 0 points up, 90 points right. */
+  angle: number
+  /** A downscaled data URL. Images are never shared or put in a link. */
+  image: string | null
+  /** Which way the text goes, since neither a photo nor a free gradient implies it. */
+  ink: 'light' | 'dark'
+}
+
+export const defaultCustomTheme: CustomTheme = {
+  mode: 'gradient',
+  from: '#3d2f8f',
+  to: '#0f8f9e',
+  angle: 160,
+  image: null,
+  ink: 'light',
+}
+
+/** Chrome for each ink, plus the wash laid over a photo so text stays readable on it. */
+const INK = {
+  light: {
+    text: '#f6f5fb',
+    muted: 'rgba(246, 245, 251, 0.62)',
+    surface: 'rgba(16, 16, 22, 0.8)',
+    border: 'rgba(246, 245, 251, 0.2)',
+    scrim: 'rgba(8, 8, 11, 0.45)',
+  },
+  dark: {
+    text: '#17161d',
+    muted: 'rgba(23, 22, 29, 0.6)',
+    surface: 'rgba(255, 255, 255, 0.86)',
+    border: 'rgba(23, 22, 29, 0.18)',
+    scrim: 'rgba(255, 255, 255, 0.45)',
+  },
+} as const
+
+const HEX = /^#[0-9a-f]{6}$/i
+
+/** Guards every field, so a hand-edited link or an old export cannot produce CSS the
+ *  page has to try to render. */
+export function sanitizeCustomTheme(
+  raw: unknown,
+  base: CustomTheme = defaultCustomTheme,
+): CustomTheme {
+  const r = (raw ?? {}) as Record<string, unknown>
+  const hex = (value: unknown, fallback: string) =>
+    typeof value === 'string' && HEX.test(value) ? value : fallback
+  const angle = Number(r.angle)
+
+  return {
+    mode: r.mode === 'image' ? 'image' : 'gradient',
+    from: hex(r.from, base.from),
+    to: hex(r.to, base.to),
+    angle: Number.isFinite(angle) ? ((Math.round(angle) % 360) + 360) % 360 : base.angle,
+    // Only a data URL: a remote one would let a shared link fetch from another host.
+    image: typeof r.image === 'string' && r.image.startsWith('data:image/') ? r.image : null,
+    ink: r.ink === 'dark' ? 'dark' : 'light',
+  }
+}
+
+export function buildCustomTheme(custom: CustomTheme): Theme {
+  const ink = INK[custom.ink]
+  const usingImage = custom.mode === 'image' && custom.image
+  const background = usingImage
+    ? `linear-gradient(${ink.scrim}, ${ink.scrim}), url("${custom.image}") center / cover no-repeat, ` +
+      `linear-gradient(${custom.angle}deg, ${custom.from} 0%, ${custom.to} 100%)`
+    : `linear-gradient(${custom.angle}deg, ${custom.from} 0%, ${custom.to} 100%)`
+
+  return {
+    id: CUSTOM_THEME_ID,
+    name: 'Custom',
+    background,
+    text: ink.text,
+    muted: ink.muted,
+    surface: ink.surface,
+    border: ink.border,
+    displayFont: '"Inter", system-ui, sans-serif',
+    displayWeight: 700,
+    displayTracking: '-0.04em',
+  }
+}
+
+export function isThemeId(id: unknown): id is string {
+  return id === CUSTOM_THEME_ID || themes.some((t) => t.id === id)
+}
+
+/** The theme actually painted, which for the custom id has to be built from settings. */
+export function resolveTheme(id: string, custom: CustomTheme): Theme {
+  return id === CUSTOM_THEME_ID ? buildCustomTheme(custom) : themeById(id)
 }

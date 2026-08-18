@@ -142,13 +142,15 @@ body {
   pointer-events: none;
 }
 
-.animation-grid {
+.animation-grid,
+.choice-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
-.animation-option {
+.animation-option,
+.choice-option {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -162,7 +164,8 @@ body {
   cursor: pointer;
 }
 
-.animation-option.is-active {
+.animation-option.is-active,
+.choice-option.is-active {
   outline: 2px solid var(--text);
   outline-offset: 1px;
 }
@@ -950,4 +953,58 @@ body {
 
 .theme-name {
   font-size: 13px;
+}
+
+/* The custom theme's own page: a large preview of what is being edited, then the
+   controls that build it. */
+.custom-preview {
+  display: grid;
+  place-items: center;
+  height: 132px;
+  margin-bottom: var(--gap-block);
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+}
+
+.custom-preview-value {
+  max-width: 100%;
+  font-size: 36px;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.choice-option {
+  /* One word each, so they read better centred than the animation cards do. */
+  align-items: center;
+  text-align: center;
+}
+
+.group-field input[type='color'] {
+  width: 100%;
+  height: 34px;
+  padding: 2px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.group-field input[type='range'] {
+  flex: 1;
+  accent-color: var(--text);
+}
+
+.field-value {
+  min-width: 42px;
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.group-link.is-danger {
+  color: #ff8080;
 }

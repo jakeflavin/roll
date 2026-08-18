@@ -1,4 +1,4 @@
-import { defaultTheme } from './themes'
+import { defaultCustomTheme, defaultTheme, sanitizeCustomTheme, type CustomTheme } from './themes'
 import { defaultAnimation, type AnimationId } from './animations'
 import { defaultSource, type SourceId } from './sources'
 import { readInitialSettings } from './shareUrl'
@@ -14,6 +14,8 @@ export type Settings = {
   /** Allow the same value to come up again; off draws without replacement. */
   repeat: boolean
   themeId: string
+  /** The user's own theme, kept whether or not it is the one selected. */
+  customTheme: CustomTheme
   animationId: AnimationId
 }
 
@@ -26,6 +28,7 @@ export const defaultSettings: Settings = {
   bothCases: false,
   repeat: false,
   themeId: defaultTheme.id,
+  customTheme: defaultCustomTheme,
   animationId: defaultAnimation.id,
 }
 
@@ -51,6 +54,7 @@ export function migrate(stored: Partial<Settings> & { sourceId?: SourceId }): Se
     ...defaultSettings,
     ...rest,
     sourceIds: ids.length ? ids : [sourceId ?? defaultSource.id],
+    customTheme: sanitizeCustomTheme(rest.customTheme),
   }
 }
 

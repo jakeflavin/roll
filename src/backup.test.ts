@@ -7,7 +7,7 @@ const base = defaultSettings
 
 const file = (over: Record<string, unknown> = {}) =>
   JSON.stringify({
-    app: 'roll',
+    app: 'hat',
     version: BACKUP_VERSION,
     settings: { ...base, sourceIds: ['animal'], themeId: 'ember' },
     session: emptySession,
@@ -22,7 +22,7 @@ describe('parseBackup rejections', () => {
 
   it('refuses another app’s export', () => {
     expect(() => parseBackup(JSON.stringify({ app: 'other', version: 1 }), base)).toThrow(
-      /isn't a Roll export/,
+      /isn't a Hat export/,
     )
   })
 
@@ -80,10 +80,19 @@ describe('parseBackup coercion', () => {
   })
 
   it('survives a file with no session or lists at all', () => {
-    const bare = JSON.stringify({ app: 'roll', version: BACKUP_VERSION })
+    const bare = JSON.stringify({ app: 'hat', version: BACKUP_VERSION })
     const parsed = parseBackup(bare, base)
     expect(parsed.session.entries).toEqual([])
     expect(parsed.lists).toEqual([])
+  })
+
+  it('still opens a file exported while the app was called Roll', () => {
+    const old = JSON.stringify({
+      app: 'roll',
+      version: BACKUP_VERSION,
+      settings: { ...base, themeId: 'ember' },
+    })
+    expect(parseBackup(old, base).settings.themeId).toBe('ember')
   })
 })
 
@@ -91,7 +100,7 @@ describe('buildBackup', () => {
   it('carries settings, session, and lists together', () => {
     const lists = [{ id: 'custom:a', name: 'Roster', items: ['Ada'] }]
     const backup = buildBackup(base, emptySession, lists)
-    expect(backup.app).toBe('roll')
+    expect(backup.app).toBe('hat')
     expect(backup.lists).toEqual(lists)
   })
 
@@ -108,6 +117,6 @@ describe('buildBackup', () => {
 
 describe('backupFilename', () => {
   it('is dated, so successive exports do not collide', () => {
-    expect(backupFilename(new Date('2026-08-17T12:00:00Z'))).toBe('roll-2026-08-17.json')
+    expect(backupFilename(new Date('2026-08-17T12:00:00Z'))).toBe('hat-2026-08-17.json')
   })
 })
