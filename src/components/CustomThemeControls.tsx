@@ -63,7 +63,6 @@ export function CustomThemeControls({ custom, onChange }: Props) {
   return (
     <>
       <div className="group-field is-kinds">
-        <span className="field-label">Background</span>
         <Segmented
           value={custom.mode}
           options={[
@@ -76,23 +75,21 @@ export function CustomThemeControls({ custom, onChange }: Props) {
 
       {custom.mode === 'gradient' ? (
         <>
-          <div className="group-field">
-            <label>
-              From
-              <input
-                type="color"
-                value={custom.from}
-                onChange={(e) => onChange({ from: e.target.value })}
-              />
-            </label>
-            <label>
-              To
-              <input
-                type="color"
-                value={custom.to}
-                onChange={(e) => onChange({ to: e.target.value })}
-              />
-            </label>
+          {/* The swatches carry their own colour, so a label beside them would only
+              repeat what is already visible. The names live on the accessible label. */}
+          <div className="group-field is-colors">
+            <input
+              type="color"
+              aria-label="Gradient start"
+              value={custom.from}
+              onChange={(e) => onChange({ from: e.target.value })}
+            />
+            <input
+              type="color"
+              aria-label="Gradient end"
+              value={custom.to}
+              onChange={(e) => onChange({ to: e.target.value })}
+            />
           </div>
           <div className="group-field">
             <label className="field-label" htmlFor="angle">
@@ -158,7 +155,6 @@ export function CustomThemeControls({ custom, onChange }: Props) {
       {error && <p className="settings-hint is-inset is-error">{error}</p>}
 
       <div className="group-field is-kinds">
-        <span className="field-label">Text</span>
         <Segmented
           value={custom.ink}
           options={[

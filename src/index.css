@@ -1003,8 +1003,13 @@ body {
   text-align: right;
 }
 
+.group-field.is-colors {
+  gap: 8px;
+}
+
 .group-field input[type='color'] {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   height: 34px;
   padding: 2px;
   background: transparent;
