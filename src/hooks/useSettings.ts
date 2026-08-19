@@ -3,10 +3,10 @@ import {
   defaultTheme,
   sanitizeCustomTheme,
   type CustomTheme,
-} from '../lib/themes'
-import { defaultAnimation, type AnimationId } from '../lib/animations'
-import { defaultSource, type SourceId } from '../lib/sources'
-import { readInitialSettings } from '../lib/shareUrl'
+} from '@/lib/themes'
+import { defaultAnimation, type AnimationId } from '@/lib/animations'
+import { defaultSource, type SourceId } from '@/lib/sources'
+import { readInitialSettings } from '@/lib/shareUrl'
 import { usePersistentState } from './usePersistentState'
 
 export type Settings = {

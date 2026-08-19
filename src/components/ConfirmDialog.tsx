@@ -1,4 +1,4 @@
-import { useDialog } from '../hooks/useDialog'
+import { useDialog } from '@/hooks/useDialog'
 
 type ConfirmDialogProps = {
   open: boolean

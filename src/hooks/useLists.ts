@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { cleanItems, LISTS_KEY, newListId, readLists, type CustomList } from '../lib/lists'
+import { cleanItems, LISTS_KEY, newListId, readLists, type CustomList } from '@/lib/lists'
 import { usePersistentState } from './usePersistentState'
 
 /** The user's own pools, which sit alongside the built-in ones. */

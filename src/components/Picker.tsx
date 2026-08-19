@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { animationDuration, isCelebration, type AnimationId } from '../lib/animations'
-import type { PickSource } from '../lib/sources'
-import type { Theme } from '../lib/themes'
-import { isDrawerOpen, isTypingTarget, targetElement } from '../lib/shortcuts'
+import { animationDuration, isCelebration, type AnimationId } from '@/lib/animations'
+import type { PickSource } from '@/lib/sources'
+import type { Theme } from '@/lib/themes'
+import { isDrawerOpen, isTypingTarget, targetElement } from '@/lib/shortcuts'
 import { Celebration } from './Celebration'
 import { PickedValue } from './PickedValue'
 

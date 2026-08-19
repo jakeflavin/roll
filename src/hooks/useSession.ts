@@ -7,7 +7,7 @@ import {
   startCycle,
   type Session,
   type SessionEntry,
-} from '../lib/session'
+} from '@/lib/session'
 import { usePersistentState } from './usePersistentState'
 
 /**

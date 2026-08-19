@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
-import type { Theme } from '../lib/themes'
+import type { Theme } from '@/lib/themes'
 import {
   CELEBRATION_SWAP_MS,
   celebrationShowAt,
@@ -13,8 +13,8 @@ import {
   ROLL_MS,
   SCRAMBLE_MS,
   type AnimationId,
-} from '../lib/animations'
-import type { PickSource } from '../lib/sources'
+} from '@/lib/animations'
+import type { PickSource } from '@/lib/sources'
 import { RevealCloud } from './RevealCloud'
 
 /**
