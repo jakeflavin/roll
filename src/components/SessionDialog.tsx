@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { DayGroup, DayLabel, PickMeta, PickValue, Picks } from './SessionDialog.styled'
+import { Drawer, DrawerHeader, Hint, LinkButton, OptionsCount } from './drawer.styled'
 import { IconButton } from './buttons.styled'
 import { X } from 'lucide-react'
 import { groupByDay, type Session } from '@/lib/session'
@@ -20,30 +22,30 @@ export function SessionDialog({ open, onClose, session, onClear }: SessionDialog
   const days = groupByDay(session.entries)
 
   return (
-    <dialog ref={ref} className="drawer drawer-session" onClose={onClose} onClick={onBackdropClick}>
-      <div className="settings-header">
+    <Drawer ref={ref} onClose={onClose} onClick={onBackdropClick}>
+      <DrawerHeader>
         <h2>Session</h2>
         <IconButton onClick={onClose} aria-label="Close session">
           <X size={18} />
         </IconButton>
-      </div>
+      </DrawerHeader>
 
       {days.length === 0 ? (
-        <p className="settings-hint">Nothing picked yet. Your picks will collect here.</p>
+        <Hint>Nothing picked yet. Your picks will collect here.</Hint>
       ) : (
         <>
-          <p className="options-count">
+          <OptionsCount>
             {session.entries.length} {session.entries.length === 1 ? 'pick' : 'picks'}
-          </p>
+          </OptionsCount>
 
           {days.map((day) => (
-            <section key={day.label} className="session-day">
-              <h3 className="session-day-label">{day.label}</h3>
-              <ul className="session-list">
+            <DayGroup key={day.label}>
+              <DayLabel>{day.label}</DayLabel>
+              <Picks>
                 {day.entries.map((entry) => (
                   <li key={`${entry.at}-${entry.value}`}>
-                    <span className="session-value">{entry.value}</span>
-                    <span className="session-meta">
+                    <PickValue>{entry.value}</PickValue>
+                    <PickMeta>
                       <span>{entry.sourceName ?? sourceById(entry.sourceId).name}</span>
                       {/* Two identical rows are otherwise indistinguishable, and look
                           like a bug rather than two separate rolls. */}
@@ -53,18 +55,18 @@ export function SessionDialog({ open, onClose, session, onClear }: SessionDialog
                           minute: '2-digit',
                         })}
                       </time>
-                    </span>
+                    </PickMeta>
                   </li>
                 ))}
-              </ul>
-            </section>
+              </Picks>
+            </DayGroup>
           ))}
 
           {/* Quiet by default: it destroys the history and the no-repeat memory with
               it, so it should not compete with reading the list. */}
-          <button className="link-button is-danger" onClick={() => setConfirming(true)}>
+          <LinkButton $danger onClick={() => setConfirming(true)}>
             Clear session
-          </button>
+          </LinkButton>
 
           <ConfirmDialog
             open={confirming}
@@ -81,6 +83,6 @@ export function SessionDialog({ open, onClose, session, onClear }: SessionDialog
           />
         </>
       )}
-    </dialog>
+    </Drawer>
   )
 }

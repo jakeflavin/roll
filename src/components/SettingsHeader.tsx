@@ -1,4 +1,5 @@
 import { ChevronLeft, X } from 'lucide-react'
+import { DrawerHeader } from './drawer.styled'
 import { IconButton } from './buttons.styled'
 
 type SettingsHeaderProps = {
@@ -11,7 +12,7 @@ type SettingsHeaderProps = {
 /** The bar every page of the drawer wears, so a sub-page cannot drift from the main one. */
 export function SettingsHeader({ title, onClose, onBack }: SettingsHeaderProps) {
   return (
-    <div className="settings-header">
+    <DrawerHeader>
       {onBack && (
         <IconButton onClick={onBack} aria-label="Back to settings">
           <ChevronLeft size={18} />
@@ -21,6 +22,6 @@ export function SettingsHeader({ title, onClose, onBack }: SettingsHeaderProps) 
       <IconButton onClick={onClose} aria-label="Close settings">
         <X size={18} />
       </IconButton>
-    </div>
+    </DrawerHeader>
   )
 }

@@ -1,4 +1,6 @@
 import { useRef, useState } from 'react'
+import { Entries } from './SessionDialog.styled'
+import { BareInput, GhostButton, Group, GroupCard, GroupField, GroupHead, GroupLink, Hint, LinkButton, PlainInput, VisuallyHidden } from './drawer.styled'
 import { Plus, Upload, X } from 'lucide-react'
 import { cleanItems, parseCsv, type CustomList } from '@/lib/lists'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -56,20 +58,18 @@ export function ListEditor({ list, onUpdate, onDelete }: ListEditorProps) {
     <>
       {/* The list is its own card, the way a group is on the settings page: its name
           sits bare at the top, and the ways of filling it are rows beneath. */}
-      <div className="group-card">
-        <div className="group-head">
-          <input
-            className="bare-input"
+      <GroupCard>
+        <GroupHead>
+          <BareInput
             value={list.name}
             aria-label="List name"
             onChange={(e) => onUpdate({ name: e.target.value })}
             onBlur={() => !list.name.trim() && onUpdate({ name: 'My list' })}
           />
-        </div>
+        </GroupHead>
 
-        <div className="group-field">
-          <input
-            className="plain-input"
+        <GroupField>
+          <PlainInput
             value={draft}
             placeholder="Add an entry"
             aria-label="Add an entry"
@@ -81,56 +81,54 @@ export function ListEditor({ list, onUpdate, onDelete }: ListEditorProps) {
               }
             }}
           />
-          <button className="ghost-button" onClick={() => addItems(draft)} aria-label="Add entry">
+          <GhostButton onClick={() => addItems(draft)} aria-label="Add entry">
             <Plus size={18} />
-          </button>
-        </div>
+          </GhostButton>
+        </GroupField>
 
-        <button className="group-link" onClick={() => fileRef.current?.click()}>
+        <GroupLink onClick={() => fileRef.current?.click()}>
           Upload CSV
           <Upload size={15} aria-hidden="true" />
-        </button>
-        <input
+        </GroupLink>
+        <VisuallyHidden
           ref={fileRef}
-          className="visually-hidden"
           type="file"
           accept=".csv,text/csv,text/plain"
           onChange={(e) => onFile(e.target.files?.[0])}
         />
-      </div>
+      </GroupCard>
 
       {/* Only speaks when there is something to report. */}
-      {status && <p className="settings-hint">{status}</p>}
+      {status && <Hint>{status}</Hint>}
 
-      <fieldset className="settings-group">
+      <Group>
         <legend>
           {list.items.length} {list.items.length === 1 ? 'entry' : 'entries'}
         </legend>
         {list.items.length === 0 ? (
-          <p className="settings-hint">Nothing here yet.</p>
+          <Hint>Nothing here yet.</Hint>
         ) : (
-          <ul className="entry-list">
+          <Entries>
             {list.items.map((item) => (
               <li key={item}>
                 <span>{item}</span>
-                <button
-                  className="ghost-button is-small"
+                <GhostButton $small
                   onClick={() => onUpdate({ items: list.items.filter((i) => i !== item) })}
                   aria-label={`Remove ${item}`}
                 >
                   <X size={15} />
-                </button>
+                </GhostButton>
               </li>
             ))}
-          </ul>
+          </Entries>
         )}
-      </fieldset>
+      </Group>
 
       {/* Quiet, like clearing a session: destructive, so it should not look like the
           ordinary actions above it. */}
-      <button className="link-button is-danger" onClick={() => setConfirming(true)}>
+      <LinkButton $danger onClick={() => setConfirming(true)}>
         Delete list
-      </button>
+      </LinkButton>
 
       <ConfirmDialog
         open={confirming}

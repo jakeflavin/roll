@@ -1,4 +1,5 @@
 import { ChevronDown, ChevronRight, Plus, X } from 'lucide-react'
+import { AddRow, GhostButton, Group, GroupCard, GroupField, GroupHead, GroupLink, LinkButton, Select, SelectArrow, SelectWrap, Switch } from './drawer.styled'
 import { allSources, sources, type SourceId } from '@/lib/sources'
 import { isCustomId, type CustomList } from '@/lib/lists'
 import type { Settings } from '@/hooks/useSettings'
@@ -43,7 +44,7 @@ export function SourceSettings({
 
     if (id === 'number') {
       rows.push(
-        <div className="group-field" key="range">
+        <GroupField key="range">
           <label>
             Min
             <input
@@ -62,7 +63,7 @@ export function SourceSettings({
               onBlur={commitRange}
             />
           </label>
-        </div>,
+        </GroupField>,
       )
     }
 
@@ -70,7 +71,7 @@ export function SourceSettings({
       rows.push(
         // Associated by id rather than nested: a checkbox inside its own label gets the
         // click twice — once directly, once forwarded — and lands back where it started.
-        <div className="group-field is-switch" key="case">
+        <GroupField $switch key="case">
           <label htmlFor="both-cases">Include lowercase</label>
           <input
             id="both-cases"
@@ -79,7 +80,7 @@ export function SourceSettings({
             checked={settings.bothCases}
             onChange={(e) => onChange({ ...settings, bothCases: e.target.checked })}
           />
-        </div>,
+        </GroupField>,
       )
     }
 
@@ -87,17 +88,17 @@ export function SourceSettings({
     // carrying the same weight as the group's own dropdown.
     if (isCustomId(id)) {
       rows.push(
-        <button className="group-link" key="edit" onClick={() => onEditList(id)}>
+        <GroupLink key="edit" onClick={() => onEditList(id)}>
           Edit entries
           <ChevronRight size={15} aria-hidden="true" />
-        </button>,
+        </GroupLink>,
       )
     } else if (group?.options) {
       rows.push(
-        <button className="group-link" key="see" onClick={() => onViewOptions(id)}>
+        <GroupLink key="see" onClick={() => onViewOptions(id)}>
           See all {group.options.length}
           <ChevronRight size={15} aria-hidden="true" />
-        </button>,
+        </GroupLink>,
       )
     }
 
@@ -106,17 +107,16 @@ export function SourceSettings({
 
   return (
     <>
-      <fieldset className="settings-group">
+      <Group>
         <legend>Pick from</legend>
         {/* One card per group: the dropdown chooses it, the rows beneath belong
             to it. Cards keep several groups from reading as one flat stack of
             identical boxes. */}
         {settings.sourceIds.map((id, i) => (
-          <div className="group-card" key={`${id}-${i}`}>
-            <div className="group-head">
-              <div className="select-wrap">
-                <select
-                  className="select is-bare"
+          <GroupCard key={`${id}-${i}`}>
+            <GroupHead>
+              <SelectWrap>
+                <Select $bare
                   value={id}
                   onChange={(e) =>
                     onChange({
@@ -147,12 +147,11 @@ export function SourceSettings({
                         ))}
                     </optgroup>
                   )}
-                </select>
-                <ChevronDown className="select-arrow" size={16} aria-hidden="true" />
-              </div>
+                </Select>
+                <SelectArrow as={ChevronDown} size={16} aria-hidden="true" />
+              </SelectWrap>
               {settings.sourceIds.length > 1 && (
-                <button
-                  className="ghost-button"
+                <GhostButton
                   onClick={() =>
                     onChange({
                       ...settings,
@@ -162,18 +161,17 @@ export function SourceSettings({
                   aria-label={`Remove ${available.find((s) => s.id === id)?.name}`}
                 >
                   <X size={16} />
-                </button>
+                </GhostButton>
               )}
-            </div>
+            </GroupHead>
             {groupRows(id)}
-          </div>
+          </GroupCard>
         ))}
 
-        <div className="add-row">
+        <AddRow>
           {unused.length > 0 && (
-            <div className="select-wrap is-add">
-              <select
-                className="select is-add"
+            <SelectWrap $add>
+              <Select $add
                 value=""
                 onChange={(e) =>
                   e.target.value &&
@@ -186,12 +184,11 @@ export function SourceSettings({
                     {s.name}
                   </option>
                 ))}
-              </select>
-              <Plus className="select-arrow is-left" size={15} aria-hidden="true" />
-            </div>
+              </Select>
+              <SelectArrow as={Plus} $left size={15} aria-hidden="true" />
+            </SelectWrap>
           )}
-          <button
-            className="link-button"
+          <LinkButton
             onClick={() => {
               onCreateList()
               // The new list takes the first slot, and is what the editor shows. Straight
@@ -200,22 +197,22 @@ export function SourceSettings({
             }}
           >
             Custom list
-          </button>
-        </div>
-      </fieldset>
+          </LinkButton>
+        </AddRow>
+      </Group>
 
       {/* A row rather than a titled group: the label on the switch says the whole
           thing, so a heading above it would only repeat itself. */}
-      <div className="settings-group switch-row">
+      <Group as="div" $row>
         <label htmlFor="repeat">Repeat picks</label>
-        <input
+        <Switch
           id="repeat"
           type="checkbox"
           role="switch"
           checked={settings.repeat}
           onChange={(e) => onChange({ ...settings, repeat: e.target.checked })}
         />
-      </div>
+      </Group>
     </>
   )
 }

@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { FieldLabel, FieldValue, GroupField, Hint, ImageThumb, OutlineButton, SegmentButton, Segmented as SegmentedRow, VisuallyHidden } from './drawer.styled'
 import { IconButton } from './buttons.styled'
 import { ImagePlus, Trash2 } from 'lucide-react'
 import type { CustomTheme } from '@/lib/themes'
@@ -20,18 +21,18 @@ function Segmented<T extends string>({
   onPick: (id: T) => void
 }) {
   return (
-    <div className="segmented is-inline">
+    <SegmentedRow $inline>
       {options.map((option) => (
-        <button
+        <SegmentButton
           key={option.id}
-          className={`segment-button${option.id === value ? ' is-active' : ''}`}
+          $active={option.id === value}
           aria-pressed={option.id === value}
           onClick={() => onPick(option.id)}
         >
           {option.label}
-        </button>
+        </SegmentButton>
       ))}
-    </div>
+    </SegmentedRow>
   )
 }
 
@@ -63,7 +64,7 @@ export function CustomThemeControls({ custom, onChange }: CustomThemeControlsPro
 
   return (
     <>
-      <div className="group-field is-kinds">
+      <GroupField $wrap>
         <Segmented
           value={custom.mode}
           options={[
@@ -72,13 +73,13 @@ export function CustomThemeControls({ custom, onChange }: CustomThemeControlsPro
           ]}
           onPick={(mode) => onChange({ mode })}
         />
-      </div>
+      </GroupField>
 
       {custom.mode === 'gradient' ? (
         <>
           {/* The swatches carry their own colour, so a label beside them would only
               repeat what is already visible. The names live on the accessible label. */}
-          <div className="group-field is-colors">
+          <GroupField $wrap>
             <input
               type="color"
               aria-label="Gradient start"
@@ -91,11 +92,11 @@ export function CustomThemeControls({ custom, onChange }: CustomThemeControlsPro
               value={custom.to}
               onChange={(e) => onChange({ to: e.target.value })}
             />
-          </div>
-          <div className="group-field">
-            <label className="field-label" htmlFor="angle">
+          </GroupField>
+          <GroupField>
+            <FieldLabel as="label" htmlFor="angle">
               Angle
-            </label>
+            </FieldLabel>
             <input
               id="angle"
               type="range"
@@ -104,27 +105,25 @@ export function CustomThemeControls({ custom, onChange }: CustomThemeControlsPro
               value={custom.angle}
               onChange={(e) => onChange({ angle: Number(e.target.value) })}
             />
-            <span className="field-value">{custom.angle}&deg;</span>
-          </div>
+            <FieldValue>{custom.angle}&deg;</FieldValue>
+          </GroupField>
         </>
       ) : (
         <>
-          <div className="group-field is-image">
+          <GroupField $wrap>
             {custom.image && (
-              <span
-                className="image-thumb"
+              <ImageThumb
                 style={{ backgroundImage: `url("${custom.image}")` }}
                 aria-hidden="true"
               />
             )}
-            <button
-              className="outline-button"
+            <OutlineButton
               onClick={() => fileRef.current?.click()}
               disabled={working}
             >
               <ImagePlus size={15} aria-hidden="true" />
               {working ? 'Working…' : custom.image ? 'Replace' : 'Choose image'}
-            </button>
+            </OutlineButton>
             {custom.image && (
               <IconButton
                 $quiet
@@ -137,25 +136,24 @@ export function CustomThemeControls({ custom, onChange }: CustomThemeControlsPro
                 <Trash2 size={16} />
               </IconButton>
             )}
-            <input
+            <VisuallyHidden
               ref={fileRef}
-              className="visually-hidden"
               type="file"
               accept="image/*"
               onChange={(e) => void onFile(e.target.files?.[0])}
             />
-          </div>
+          </GroupField>
           {!custom.image && !error && (
-            <p className="settings-hint is-inset">
+            <Hint $inset>
               Pictures stay on this device. A shared link carries the gradient instead.
-            </p>
+            </Hint>
           )}
         </>
       )}
 
-      {error && <p className="settings-hint is-inset is-error">{error}</p>}
+      {error && <Hint $inset $error>{error}</Hint>}
 
-      <div className="group-field is-kinds">
+      <GroupField $wrap>
         <Segmented
           value={custom.ink}
           options={[
@@ -164,7 +162,7 @@ export function CustomThemeControls({ custom, onChange }: CustomThemeControlsPro
           ]}
           onPick={(ink) => onChange({ ink })}
         />
-      </div>
+      </GroupField>
     </>
   )
 }

@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { ButtonRow, Hint, OutlineButton, VisuallyHidden } from './drawer.styled'
 import { Download, Upload } from 'lucide-react'
 import { BackupError, buildBackup, downloadBackup, parseBackup } from '@/lib/backup'
 import type { CustomList } from '@/lib/lists'
@@ -47,26 +48,25 @@ export function BackupControls({ settings, session, lists, onRestore }: BackupCo
 
   return (
     <>
-      <div className="backup-row">
-        <button className="outline-button" onClick={onExport}>
+      <ButtonRow>
+        <OutlineButton onClick={onExport}>
           <Download size={15} aria-hidden="true" />
           Export
-        </button>
-        <button className="outline-button" onClick={() => fileRef.current?.click()}>
+        </OutlineButton>
+        <OutlineButton onClick={() => fileRef.current?.click()}>
           <Upload size={15} aria-hidden="true" />
           Import
-        </button>
-        <input
+        </OutlineButton>
+        <VisuallyHidden
           ref={fileRef}
-          className="visually-hidden"
           type="file"
           accept="application/json,.json"
           onChange={(e) => onFile(e.target.files?.[0])}
         />
-      </div>
+      </ButtonRow>
 
       {/* Only speaks when there is something to report. */}
-      {status && <p className={`settings-hint${status.error ? ' is-error' : ''}`}>{status.text}</p>}
+      {status && <Hint $error={Boolean(status.error)}>{status.text}</Hint>}
     </>
   )
 }

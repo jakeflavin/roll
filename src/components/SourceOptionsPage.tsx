@@ -1,3 +1,5 @@
+import { OptionsCount } from './drawer.styled'
+import { Options } from './SessionDialog.styled'
 type SourceOptionsPageProps = {
   options: string[]
   /** Emoji need their own grid; everything else reads as a list. */
@@ -8,12 +10,12 @@ type SourceOptionsPageProps = {
 export function SourceOptionsPage({ options, isEmoji }: SourceOptionsPageProps) {
   return (
     <>
-      <p className="options-count">{options.length} options</p>
-      <ul className={`options-list${isEmoji ? ' is-emoji' : ''}`}>
+      <OptionsCount>{options.length} options</OptionsCount>
+      <Options $emoji={isEmoji}>
         {options.map((option) => (
           <li key={option}>{option}</li>
         ))}
-      </ul>
+      </Options>
     </>
   )
 }

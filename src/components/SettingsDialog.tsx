@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Divider, Drawer } from './drawer.styled'
 import { allSources, type SourceId } from '@/lib/sources'
 import type { CustomList } from '@/lib/lists'
 import type { Session } from '@/lib/session'
@@ -72,7 +73,7 @@ export function SettingsDialog({
   const back = () => setPage('main')
 
   return (
-    <dialog ref={ref} className="drawer drawer-settings" onClose={onClose} onClick={onBackdropClick}>
+    <Drawer ref={ref} onClose={onClose} onClick={onBackdropClick}>
       {page === 'shortcuts' ? (
         <>
           <SettingsHeader title="Shortcuts" onClose={onClose} onBack={back} />
@@ -116,7 +117,7 @@ export function SettingsDialog({
 
           {/* Everything above changes what gets picked; everything below changes how it
               looks. The rule keeps the two from reading as one long list. */}
-          <hr className="settings-divider" />
+          <Divider />
 
           <AppearanceSettings
             settings={settings}
@@ -131,6 +132,6 @@ export function SettingsDialog({
           />
         </>
       )}
-    </dialog>
+    </Drawer>
   )
 }

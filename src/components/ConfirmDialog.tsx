@@ -1,4 +1,5 @@
 import { useDialog } from '@/hooks/useDialog'
+import { ButtonRow, Confirm, OutlineButton } from './drawer.styled'
 
 type ConfirmDialogProps = {
   open: boolean
@@ -26,17 +27,17 @@ export function ConfirmDialog({
   const { ref } = useDialog(open, onCancel)
 
   return (
-    <dialog ref={ref} className="confirm" onClose={onCancel}>
+    <Confirm ref={ref} onClose={onCancel}>
       <h2>{title}</h2>
       <p>{body}</p>
-      <div className="confirm-actions">
-        <button className="outline-button" onClick={onCancel}>
+      <ButtonRow>
+        <OutlineButton onClick={onCancel}>
           Cancel
-        </button>
-        <button className="outline-button is-danger" onClick={onConfirm}>
+        </OutlineButton>
+        <OutlineButton $danger onClick={onConfirm}>
           {confirmLabel}
-        </button>
-      </div>
-    </dialog>
+        </OutlineButton>
+      </ButtonRow>
+    </Confirm>
   )
 }

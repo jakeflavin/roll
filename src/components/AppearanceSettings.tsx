@@ -1,4 +1,6 @@
 import { History, Keyboard } from 'lucide-react'
+import { AnimationGrid, AnimationName, AnimationOption, ThemeGrid, ThemeName, ThemeOption, ThemePreview, ThemeSwatch } from './AppearanceSettings.styled'
+import { ButtonRow, Divider, Group, GroupCard, OutlineButton } from './drawer.styled'
 import { buildCustomTheme, CUSTOM_THEME_ID, themes, type CustomTheme } from '@/lib/themes'
 import { animations } from '@/lib/animations'
 import type { CustomList } from '@/lib/lists'
@@ -39,23 +41,21 @@ export function AppearanceSettings({
 
   return (
     <>
-      <fieldset className="settings-group">
+      <Group>
         <legend>Theme</legend>
-        <div className="theme-grid">
+        <ThemeGrid>
           {themes.map((t) => (
-            <button
+            <ThemeOption
               key={t.id}
-              className={`theme-option${t.id === settings.themeId ? ' is-active' : ''}`}
+              $active={t.id === settings.themeId}
               onClick={() => onChange({ ...settings, themeId: t.id })}
               aria-pressed={t.id === settings.themeId}
             >
-              <span
-                className="theme-swatch"
+              <ThemeSwatch
                 style={{ background: t.background, borderColor: t.border }}
               >
                 {/* Two digits so the preview shows the theme's tracking, not just its face. */}
-                <span
-                  className="theme-preview"
+                <ThemePreview
                   style={{
                     fontFamily: t.displayFont,
                     fontWeight: t.displayWeight,
@@ -64,22 +64,20 @@ export function AppearanceSettings({
                   }}
                 >
                   {sample}
-                </span>
-              </span>
-              <span className="theme-name">{t.name}</span>
-            </button>
+                </ThemePreview>
+              </ThemeSwatch>
+              <ThemeName>{t.name}</ThemeName>
+            </ThemeOption>
           ))}
-          <button
-            className={`theme-option${settings.themeId === CUSTOM_THEME_ID ? ' is-active' : ''}`}
+          <ThemeOption
+            $active={settings.themeId === CUSTOM_THEME_ID}
             onClick={() => onChange({ ...settings, themeId: CUSTOM_THEME_ID })}
             aria-pressed={settings.themeId === CUSTOM_THEME_ID}
           >
-            <span
-              className="theme-swatch"
+            <ThemeSwatch
               style={{ background: custom.background, borderColor: custom.border }}
             >
-              <span
-                className="theme-preview"
+              <ThemePreview
                 style={{
                   fontFamily: custom.displayFont,
                   fontWeight: custom.displayWeight,
@@ -88,61 +86,61 @@ export function AppearanceSettings({
                 }}
               >
                 {sample}
-              </span>
-            </span>
-            <span className="theme-name">Custom</span>
-          </button>
-        </div>
+              </ThemePreview>
+            </ThemeSwatch>
+            <ThemeName>Custom</ThemeName>
+          </ThemeOption>
+        </ThemeGrid>
 
         {/* Only while it is the theme in use, so the page behind the drawer is the
             preview and the section stays short for everybody else. */}
         {settings.themeId === CUSTOM_THEME_ID && (
-          <div className="group-card">
+          <GroupCard>
             <CustomThemeControls custom={settings.customTheme} onChange={patchCustom} />
-          </div>
+          </GroupCard>
         )}
-      </fieldset>
+      </Group>
 
-      <fieldset className="settings-group">
+      <Group>
         <legend>Animation</legend>
-        <div className="animation-grid">
+        <AnimationGrid>
           {animations.map((a) => (
-            <button
+            <AnimationOption
               key={a.id}
-              className={`animation-option${a.id === settings.animationId ? ' is-active' : ''}`}
+              $active={a.id === settings.animationId}
               onClick={() => onChange({ ...settings, animationId: a.id })}
               aria-pressed={a.id === settings.animationId}
             >
-              <span className="animation-name">{a.name}</span>
-            </button>
+              <AnimationName>{a.name}</AnimationName>
+            </AnimationOption>
           ))}
-        </div>
-      </fieldset>
+        </AnimationGrid>
+      </Group>
 
-      <hr className="settings-divider" />
+      <Divider />
 
-      <fieldset className="settings-group">
+      <Group>
         <legend>Session and backup</legend>
-        <div className="button-grid">
-          <button className="outline-button" onClick={onOpenSession}>
+        <ButtonRow>
+          <OutlineButton onClick={onOpenSession}>
             <History size={15} aria-hidden="true" />
             Past picks
-          </button>
+          </OutlineButton>
           {/* A shortcut list is no use without a keyboard to press. */}
           {hasKeyboard && (
-            <button className="outline-button" onClick={onOpenShortcuts}>
+            <OutlineButton onClick={onOpenShortcuts}>
               <Keyboard size={15} aria-hidden="true" />
               Shortcuts
-            </button>
+            </OutlineButton>
           )}
-        </div>
+        </ButtonRow>
         <BackupControls
           settings={settings}
           session={session}
           lists={lists}
           onRestore={onRestore}
         />
-      </fieldset>
+      </Group>
     </>
   )
 }
