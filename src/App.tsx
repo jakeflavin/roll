@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Header, Main, Shell, Title } from './App.styled'
+import { IconButton } from './components/buttons.styled'
 import { History, Settings as SettingsIcon } from 'lucide-react'
 import { Picker } from './components/Picker'
 import { SettingsDialog } from './components/SettingsDialog'
@@ -128,11 +130,10 @@ export default function App() {
   }, [theme])
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1 className="app-title">Hat</h1>
-        <button
-          className="icon-button"
+    <Shell>
+      <Header>
+        <Title>Hat</Title>
+        <IconButton
           onClick={() => {
             setSettingsPage('main')
             setSettingsOpen(true)
@@ -140,10 +141,10 @@ export default function App() {
           aria-label="Open settings"
         >
           <SettingsIcon size={20} />
-        </button>
-      </header>
+        </IconButton>
+      </Header>
 
-      <main className="app-main">
+      <Main>
         <Picker
           slots={slots}
           theme={theme}
@@ -156,17 +157,16 @@ export default function App() {
           tools={
             <>
               <ShareButton url={shareUrl} />
-              <button
-                className="icon-button"
+              <IconButton
                 onClick={() => setSessionOpen(true)}
                 aria-label="View this session"
               >
                 <History size={18} />
-              </button>
+              </IconButton>
             </>
           }
         />
-      </main>
+      </Main>
 
       <SessionDialog
         open={sessionOpen}
@@ -214,6 +214,6 @@ export default function App() {
           })
         }}
       />
-    </div>
+    </Shell>
   )
 }

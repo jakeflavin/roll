@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { IconButton } from './buttons.styled'
 import { Check, Share } from 'lucide-react'
 
 type ShareButtonProps = {
@@ -36,12 +37,11 @@ export function ShareButton({ url }: ShareButtonProps) {
   }
 
   return (
-    <button
-      className="icon-button"
+    <IconButton
       onClick={share}
       aria-label={copied ? 'Link copied' : 'Share these settings'}
     >
       {copied ? <Check size={18} /> : <Share size={18} />}
-    </button>
+    </IconButton>
   )
 }

@@ -1,4 +1,5 @@
 import { ChevronLeft, X } from 'lucide-react'
+import { IconButton } from './buttons.styled'
 
 type SettingsHeaderProps = {
   title: string
@@ -12,14 +13,14 @@ export function SettingsHeader({ title, onClose, onBack }: SettingsHeaderProps) 
   return (
     <div className="settings-header">
       {onBack && (
-        <button className="icon-button" onClick={onBack} aria-label="Back to settings">
+        <IconButton onClick={onBack} aria-label="Back to settings">
           <ChevronLeft size={18} />
-        </button>
+        </IconButton>
       )}
       <h2>{title}</h2>
-      <button className="icon-button" onClick={onClose} aria-label="Close settings">
+      <IconButton onClick={onClose} aria-label="Close settings">
         <X size={18} />
-      </button>
+      </IconButton>
     </div>
   )
 }

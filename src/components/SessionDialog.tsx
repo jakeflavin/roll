@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { IconButton } from './buttons.styled'
 import { X } from 'lucide-react'
 import { groupByDay, type Session } from '@/lib/session'
 import { sourceById } from '@/lib/sources'
@@ -22,9 +23,9 @@ export function SessionDialog({ open, onClose, session, onClear }: SessionDialog
     <dialog ref={ref} className="drawer drawer-session" onClose={onClose} onClick={onBackdropClick}>
       <div className="settings-header">
         <h2>Session</h2>
-        <button className="icon-button" onClick={onClose} aria-label="Close session">
+        <IconButton onClick={onClose} aria-label="Close session">
           <X size={18} />
-        </button>
+        </IconButton>
       </div>
 
       {days.length === 0 ? (

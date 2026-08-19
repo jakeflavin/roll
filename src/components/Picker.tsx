@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { Actions, Stage, Tools } from './Picker.styled'
+import { RollButton } from './buttons.styled'
 import { animationDuration, isCelebration, type AnimationId } from '@/lib/animations'
 import type { PickSource } from '@/lib/sources'
 import type { Theme } from '@/lib/themes'
@@ -180,7 +182,7 @@ export function Picker({
   const scale = slotScale(slots.length)
 
   return (
-    <div className="picker">
+    <Stage>
       {/* --slots lets the stylesheet cap each value against the stage's own height, so
           adding groups shrinks the type rather than pushing any of it out of view. */}
       <div
@@ -221,12 +223,12 @@ export function Picker({
       {/* Opposite corners: the secondary controls to one side, the roll button to the
           other. Neither is centred, and the button is sized to its label rather than to
           the window — a full-width one became a 700px target on a desktop. */}
-      <div className="picker-actions">
-        <div className="picker-tools">{tools}</div>
-        <button className="roll-button" onClick={roll} disabled={busy}>
+      <Actions>
+        <Tools>{tools}</Tools>
+        <RollButton onClick={roll} disabled={busy}>
           {busy ? 'Rolling…' : everySlotSpent ? 'Start over' : 'Roll'}
-        </button>
-      </div>
-    </div>
+        </RollButton>
+      </Actions>
+    </Stage>
   )
 }

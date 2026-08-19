@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { IconButton } from './buttons.styled'
 import { ImagePlus, Trash2 } from 'lucide-react'
 import type { CustomTheme } from '@/lib/themes'
 import { ImageError, readBackgroundImage } from '@/lib/image'
@@ -125,8 +126,8 @@ export function CustomThemeControls({ custom, onChange }: CustomThemeControlsPro
               {working ? 'Working…' : custom.image ? 'Replace' : 'Choose image'}
             </button>
             {custom.image && (
-              <button
-                className="icon-button is-quiet"
+              <IconButton
+                $quiet
                 onClick={() => {
                   onChange({ image: null })
                   setError(null)
@@ -134,7 +135,7 @@ export function CustomThemeControls({ custom, onChange }: CustomThemeControlsPro
                 aria-label="Remove image"
               >
                 <Trash2 size={16} />
-              </button>
+              </IconButton>
             )}
             <input
               ref={fileRef}
