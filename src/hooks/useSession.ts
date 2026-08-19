@@ -2,8 +2,8 @@ import { useCallback } from 'react'
 import {
   addEntry,
   emptySession,
-  loadSession,
-  saveSession,
+  readSession,
+  SESSION_KEY,
   startCycle,
   type Session,
   type SessionEntry,
@@ -16,7 +16,9 @@ import { usePersistentState } from './usePersistentState'
  * someone come back tomorrow and not see yesterday's picks again.
  */
 export function useSession() {
-  const [session, setSession] = usePersistentState(loadSession, saveSession)
+  const [session, setSession] = usePersistentState(SESSION_KEY, emptySession, {
+    read: readSession,
+  })
 
   /** Records a value that stuck. Seeded values are not picks and are not recorded. */
   const record = useCallback((entry: SessionEntry) => {

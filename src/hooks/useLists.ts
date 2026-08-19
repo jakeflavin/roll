@@ -1,10 +1,12 @@
 import { useCallback } from 'react'
-import { cleanItems, loadLists, newListId, saveLists, type CustomList } from '../lib/lists'
+import { cleanItems, LISTS_KEY, newListId, readLists, type CustomList } from '../lib/lists'
 import { usePersistentState } from './usePersistentState'
 
 /** The user's own pools, which sit alongside the built-in ones. */
 export function useLists() {
-  const [lists, setLists] = usePersistentState(loadLists, saveLists)
+  const [lists, setLists] = usePersistentState<CustomList[]>(LISTS_KEY, [], {
+    read: readLists,
+  })
 
   /** Returns the new list, so a caller can select it straight away. */
   const create = useCallback((name: string, items: string[] = []) => {

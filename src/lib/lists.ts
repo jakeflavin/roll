@@ -4,7 +4,7 @@ export type CustomList = {
   items: string[]
 }
 
-const STORAGE_KEY = 'hat.lists'
+export const LISTS_KEY = 'hat.lists'
 
 /** Prefix marks an id as belonging to a user list rather than a built-in source. */
 export const CUSTOM_PREFIX = 'custom:'
@@ -15,24 +15,13 @@ export function newListId() {
   return `${CUSTOM_PREFIX}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
 }
 
-export function loadLists(): CustomList[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed.filter(isList) : []
-  } catch {
-    return []
-  }
+/** Decodes stored lists, dropping anything that no longer looks like one. */
+export function readLists(raw: string | null): CustomList[] {
+  if (!raw) return []
+  const parsed = JSON.parse(raw)
+  return Array.isArray(parsed) ? parsed.filter(isList) : []
 }
 
-export function saveLists(lists: CustomList[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(lists))
-  } catch {
-    // A full or blocked store should not break picking.
-  }
-}
 
 export function isList(value: unknown): value is CustomList {
   const l = (value ?? {}) as Record<string, unknown>

@@ -32,9 +32,8 @@ export const defaultSettings: Settings = {
   animationId: defaultAnimation.id,
 }
 
-function load(): Settings {
+function decode(raw: string | null): Settings {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return defaultSettings
     return migrate(JSON.parse(raw))
   } catch {
@@ -58,15 +57,10 @@ export function migrate(stored: Partial<Settings> & { sourceId?: SourceId }): Se
   }
 }
 
-function save(settings: Settings) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
-  } catch {
-    // A full or blocked store should not break picking.
-  }
-}
 
 /** Everything that shapes a roll, persisted, with a shared link's options winning. */
 export function useSettings() {
-  return usePersistentState(() => readInitialSettings(load()), save)
+  return usePersistentState(STORAGE_KEY, defaultSettings, {
+    read: (raw) => readInitialSettings(decode(raw)),
+  })
 }

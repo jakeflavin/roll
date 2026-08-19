@@ -1,22 +1,54 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 /**
- * State that reads itself from storage once and writes itself back whenever it changes.
+ * `useState` that survives a reload, and stays in step across tabs.
  *
- * The first write happens on mount, which is deliberate: it stores whatever `load`
- * decided, so anything it migrated or repaired is saved in its corrected form rather
- * than being re-migrated on every visit.
+ * Reads are lazy and defensive: a value written by an older build (or hand-edited) that no
+ * longer parses falls back to the initial value rather than taking the app down.
  *
- * `save` is expected to be a stable module-level function; it is read on each change
- * rather than tracked as a dependency.
+ * `read` is for state whose stored shape has changed since it was written. It receives the
+ * raw string and owns the whole decode, so migration and repair happen once, on the way in,
+ * and the corrected value is what gets written back.
  */
-export function usePersistentState<T>(load: () => T, save: (value: T) => void) {
-  const [value, setValue] = useState(load)
+export function usePersistentState<T>(
+  key: string,
+  initial: T,
+  options: { read?: (raw: string | null) => T } = {},
+) {
+  const { read } = options
+
+  const [value, setValue] = useState<T>(() => {
+    try {
+      const raw = localStorage.getItem(key)
+      if (read) return read(raw)
+      return raw == null ? initial : (JSON.parse(raw) as T)
+    } catch {
+      return initial
+    }
+  })
 
   useEffect(() => {
-    save(value)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value])
+    try {
+      localStorage.setItem(key, JSON.stringify(value))
+    } catch {
+      // Private-mode quota failures are not worth interrupting the session over.
+    }
+  }, [key, value])
 
-  return [value, setValue] as const
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== key || event.newValue == null) return
+      try {
+        setValue(read ? read(event.newValue) : (JSON.parse(event.newValue) as T))
+      } catch {
+        /* ignore an unparseable write from another tab */
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [key, read])
+
+  const reset = useCallback(() => setValue(initial), [initial])
+
+  return [value, setValue, reset] as const
 }

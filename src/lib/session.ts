@@ -26,29 +26,21 @@ export const emptySession: Session = { entries: [], cycleStart: {} }
 /** Bounded so a long-running session cannot grow without limit. */
 const MAX_ENTRIES = 500
 
-const STORAGE_KEY = 'hat.session'
+export const SESSION_KEY = 'hat.session'
 
-export function loadSession(): Session {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return emptySession
-    const parsed = JSON.parse(raw) as Partial<Session>
-    return {
-      entries: Array.isArray(parsed.entries) ? parsed.entries : [],
-      cycleStart: parsed.cycleStart ?? {},
-    }
-  } catch {
-    return emptySession
+/**
+ * Decodes a stored session, repairing a partial or older shape. Takes the raw string so
+ * the persistence hook owns the read and the write.
+ */
+export function readSession(raw: string | null): Session {
+  if (!raw) return emptySession
+  const parsed = JSON.parse(raw) as Partial<Session>
+  return {
+    entries: Array.isArray(parsed.entries) ? parsed.entries : [],
+    cycleStart: parsed.cycleStart ?? {},
   }
 }
 
-export function saveSession(session: Session) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
-  } catch {
-    // A full or blocked store should not break picking.
-  }
-}
 
 export function addEntry(session: Session, entry: SessionEntry): Session {
   return {
