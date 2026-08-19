@@ -319,6 +319,7 @@ export function PickedValue({
               // Three caps, whichever is smallest: the base size, a reduction for long
               // values, and the share of the stage's height this slot can occupy — the
               // last is what keeps every slot on screen however many there are.
+              // toFixed, not Intl: this is a CSS calc(), where a comma is a syntax error.
               fontSize: `min(calc(var(--display-size) * ${(fitScale(display) * scale).toFixed(3)}), calc(42cqh / var(--slots)))`,
             }}
           >
