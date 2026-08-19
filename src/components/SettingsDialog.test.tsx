@@ -25,7 +25,7 @@ const props = () => ({
   onDeleteList: vi.fn(),
 })
 
-const heading = () => document.querySelector('.settings-header h2')?.textContent
+const heading = () => screen.queryByRole('heading', { level: 2 })?.textContent
 
 describe('SettingsDialog', () => {
   it('opens as a modal when told to, and not before', () => {
