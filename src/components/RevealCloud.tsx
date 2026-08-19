@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { RevealCanvas } from './Picker.styled'
 
 const DISPERSE = 0.34
 const DRIFT_UNTIL = 0.6
@@ -210,10 +211,9 @@ export function RevealCloud({
   }, [from, to, font, letterSpacing, color, width, height, durationMs])
 
   return (
-    <canvas
+    <RevealCanvas
       ref={ref}
-      className="reveal-canvas"
-      aria-hidden="true"
+        aria-hidden="true"
       style={{
         width,
         height,

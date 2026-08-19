@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { CelebrationCanvas } from './Picker.styled'
 
 /** Festive on purpose: these read as celebration, so they ignore the theme's palette. */
 const CONFETTI_COLORS = ['#ff5f6d', '#ffc371', '#47d7ac', '#4facfe', '#c471f5', '#f9f871']
@@ -205,6 +206,6 @@ export function Celebration({
   }, [kind, width, height, originCssX, originCssY, durationMs])
 
   return (
-    <canvas ref={ref} className="celebration-canvas" aria-hidden="true" style={{ width, height }} />
+    <CelebrationCanvas ref={ref} aria-hidden="true" style={{ width, height }} />
   )
 }

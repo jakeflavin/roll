@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { motion } from 'motion/react'
+import { Label, Slot, SlotStage, ValueCover, Value } from './Picker.styled'
 import type { Theme } from '@/lib/themes'
 import {
   CELEBRATION_SWAP_MS,
@@ -298,18 +298,17 @@ export function PickedValue({
   })()
 
   return (
-    <div className="picker-slot">
-      {label && <p className="picker-label">{label}</p>}
-      <div className="picker-stage">
+    <Slot>
+      {label && <Label>{label}</Label>}
+      <SlotStage>
         {/* The cover is the wrapper's opacity rather than the value's own: motion owns
             the value's style for scale and blur, and quietly dropped an opacity target
             set alongside them. */}
-        <div className="value-cover" data-covered={covered || undefined}>
-          <motion.div
+        <ValueCover data-covered={covered || undefined}>
+          <Value
             ref={valueRef}
             key={settleKey}
-            className="picker-value"
-            aria-live="polite"
+                        aria-live="polite"
             animate={animate}
             transition={transition}
             style={{
@@ -324,8 +323,8 @@ export function PickedValue({
             }}
           >
             {display}
-          </motion.div>
-        </div>
+          </Value>
+          </ValueCover>
 
         {cloud && (
           <RevealCloud
@@ -345,7 +344,7 @@ export function PickedValue({
             }}
           />
         )}
-      </div>
-    </div>
+        </SlotStage>
+      </Slot>
   )
 }

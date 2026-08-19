@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { Actions, Stage, Tools } from './Picker.styled'
+import { Actions, Slots, Stage, Tools } from './Picker.styled'
 import { RollButton } from './buttons.styled'
 import { animationDuration, isCelebration, type AnimationId } from '@/lib/animations'
 import type { PickSource } from '@/lib/sources'
@@ -185,8 +185,7 @@ export function Picker({
     <Stage>
       {/* --slots lets the stylesheet cap each value against the stage's own height, so
           adding groups shrinks the type rather than pushing any of it out of view. */}
-      <div
-        className="picker-slots"
+      <Slots
         ref={stageRef}
         style={{ '--slots': slots.length } as CSSProperties}
       >
@@ -218,7 +217,7 @@ export function Picker({
             onDone={() => setParty(null)}
           />
         )}
-      </div>
+      </Slots>
 
       {/* Opposite corners: the secondary controls to one side, the roll button to the
           other. Neither is centred, and the button is sized to its label rather than to
