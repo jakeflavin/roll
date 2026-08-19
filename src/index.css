@@ -17,7 +17,7 @@ body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   color: var(--text);
-  background: var(--background);
+  background: var(--bg);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
 }
@@ -90,7 +90,7 @@ body {
   margin: 0;
   font-size: 11px;
   font-weight: 500;
-  color: var(--muted);
+  color: var(--dim);
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -157,7 +157,7 @@ body {
   color: var(--text);
   text-align: left;
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 12px;
   cursor: pointer;
 }
@@ -203,7 +203,7 @@ body {
   font-weight: 500;
   color: var(--text);
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 999px;
   cursor: pointer;
   backdrop-filter: blur(12px);
@@ -237,7 +237,7 @@ body {
   height: 40px;
   color: var(--text);
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 999px;
   cursor: pointer;
   backdrop-filter: blur(12px);
@@ -271,7 +271,7 @@ body {
   overflow-y: auto;
   color: var(--text);
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 20px;
   backdrop-filter: blur(20px);
 }
@@ -312,7 +312,7 @@ body {
   padding: 22px;
   color: var(--text);
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 18px;
   backdrop-filter: blur(20px);
 }
@@ -332,7 +332,7 @@ body {
   margin: 0 0 20px;
   font-size: 14px;
   line-height: 1.45;
-  color: var(--muted);
+  color: var(--dim);
 }
 
 .confirm-actions {
@@ -390,7 +390,7 @@ body {
 .settings-group legend {
   padding: 0 0 0 1px;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--dim);
 }
 
 .select-wrap {
@@ -406,7 +406,7 @@ body {
   color: var(--text);
   appearance: none;
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 10px;
   cursor: pointer;
 }
@@ -415,7 +415,7 @@ body {
   position: absolute;
   top: 50%;
   right: 14px;
-  color: var(--muted);
+  color: var(--dim);
   pointer-events: none;
   transform: translateY(-50%);
 }
@@ -431,7 +431,7 @@ body {
   padding: 0 0 0 1px;
   font: inherit;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--dim);
   text-decoration: underline;
   text-underline-offset: 3px;
   background: none;
@@ -455,14 +455,14 @@ body {
      stay equal. */
   margin: var(--gap-block) 0;
   border: 0;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--line);
 }
 
 .options-count {
   margin: 0 0 var(--gap-row);
   padding-left: 1px;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--dim);
 }
 
 .session-day {
@@ -473,7 +473,7 @@ body {
   margin: 0 0 var(--gap-row) 1px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--muted);
+  color: var(--dim);
 }
 
 .session-list {
@@ -488,11 +488,11 @@ body {
   justify-content: space-between;
   gap: 12px;
   padding: 10px 2px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--line);
 }
 
 .session-list li:last-child {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
 }
 
 .session-value {
@@ -504,7 +504,7 @@ body {
   flex: 0 0 auto;
   gap: 10px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--dim);
 }
 
 .backup-row,
@@ -522,7 +522,7 @@ body {
    the card, a dropdown and its settings were indistinguishable from the next group's. */
 .group-card {
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 12px;
 }
 
@@ -578,7 +578,7 @@ body {
 }
 
 .plain-input::placeholder {
-  color: var(--muted);
+  color: var(--dim);
 }
 
 .plain-input:focus-visible {
@@ -592,7 +592,7 @@ body {
   width: 40px;
   height: 40px;
   margin-right: 4px;
-  color: var(--muted);
+  color: var(--dim);
   background: transparent;
   border: 0;
   border-radius: 8px;
@@ -617,7 +617,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--line);
 }
 
 .group-field label {
@@ -626,7 +626,7 @@ body {
   flex-direction: column;
   gap: 5px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--dim);
 }
 
 .group-field.is-switch {
@@ -648,7 +648,7 @@ body {
   font-size: 14px;
   color: var(--text);
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 8px;
 }
 
@@ -666,10 +666,10 @@ body {
   padding: 10px 12px;
   font: inherit;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--dim);
   background: transparent;
   border: 0;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--line);
   cursor: pointer;
 }
 
@@ -693,7 +693,7 @@ body {
 .select.is-add {
   padding: 9px 12px 9px 32px;
   font-size: 14px;
-  color: var(--muted);
+  color: var(--dim);
   border-style: dashed;
 }
 
@@ -719,11 +719,11 @@ body {
   gap: 12px;
   padding: 11px 2px;
   font-size: 14px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--line);
 }
 
 .shortcut-list li:last-child {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
 }
 
 .shortcut-keys {
@@ -736,8 +736,8 @@ body {
   padding: 3px 8px;
   font-family: inherit;
   font-size: 12px;
-  color: var(--muted);
-  border: 1px solid var(--border);
+  color: var(--dim);
+  border: 1px solid var(--line);
   border-radius: 6px;
 }
 
@@ -754,11 +754,11 @@ body {
   gap: 10px;
   padding: 6px 2px 6px 1px;
   font-size: 14px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--line);
 }
 
 .entry-list li:last-child {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
 }
 
 .outline-button {
@@ -772,7 +772,7 @@ body {
   font-size: 14px;
   color: var(--text);
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 10px;
   cursor: pointer;
 }
@@ -803,11 +803,11 @@ body {
 .options-list li {
   padding: 10px 2px;
   font-size: 14px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--line);
 }
 
 .options-list li:last-child {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
 }
 
 /* Emoji have no width to speak of, so a row each wastes the drawer — they wrap as
@@ -822,12 +822,12 @@ body {
   padding: 6px 10px;
   font-size: 22px;
   line-height: 1;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 999px;
 }
 
 .options-list.is-emoji li:last-child {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
 }
 
 .settings-hint {
@@ -835,7 +835,7 @@ body {
   padding-left: 1px;
   font-size: 12px;
   line-height: 1.4;
-  color: var(--muted);
+  color: var(--dim);
 }
 
 .switch-row {
@@ -870,7 +870,7 @@ body {
   margin: 0;
   appearance: none;
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 999px;
   cursor: pointer;
   transition: background 150ms ease;
@@ -917,7 +917,7 @@ body {
   color: var(--text);
   text-align: left;
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 12px;
   cursor: pointer;
 }
@@ -957,7 +957,7 @@ body {
   display: flex;
   gap: 4px;
   padding: 4px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 12px;
 }
 
@@ -971,7 +971,7 @@ body {
   padding: 9px 12px;
   font: inherit;
   font-size: 14px;
-  color: var(--muted);
+  color: var(--dim);
   background: transparent;
   border: 0;
   border-radius: 8px;
@@ -992,13 +992,13 @@ body {
 /* Matches the font of a field's own label, for the rows whose control is not one. */
 .field-label {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--dim);
 }
 
 .field-value {
   min-width: 42px;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--dim);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
@@ -1013,7 +1013,7 @@ body {
   height: 34px;
   padding: 2px;
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 8px;
   cursor: pointer;
 }
@@ -1029,7 +1029,7 @@ body {
   height: 34px;
   background-position: center;
   background-size: cover;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 8px;
 }
 
@@ -1044,7 +1044,7 @@ body {
 .icon-button.is-quiet {
   width: 34px;
   height: 34px;
-  color: var(--muted);
+  color: var(--dim);
   background: transparent;
   backdrop-filter: none;
 }

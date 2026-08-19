@@ -123,11 +123,11 @@ export default function App() {
 
   useEffect(() => {
     const root = document.documentElement
-    root.style.setProperty('--background', theme.background)
+    root.style.setProperty('--bg', theme.background)
     root.style.setProperty('--text', theme.text)
-    root.style.setProperty('--muted', theme.muted)
+    root.style.setProperty('--dim', theme.muted)
     root.style.setProperty('--surface', theme.surface)
-    root.style.setProperty('--border', theme.border)
+    root.style.setProperty('--line', theme.border)
   }, [theme])
 
   return (
