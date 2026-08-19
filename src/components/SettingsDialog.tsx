@@ -217,7 +217,7 @@ export function SettingsDialog({
             }}
           />
         </>
-      ) : page === 'options' && source.options ? (
+      ) : page === 'options' && source?.options ? (
         <>
           {header(source.name, () => setPage('main'))}
 

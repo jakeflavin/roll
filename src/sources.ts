@@ -33,7 +33,8 @@ export type Source = {
   options?: string[]
 }
 
-export const sources: Source[] = [
+/** Non-empty by construction, so the default below is a Source rather than a maybe. */
+export const sources: [Source, ...Source[]] = [
   { id: 'number', name: 'Number' },
   { id: 'letter', name: 'Letter' },
   { id: 'emoji', name: 'Emoji', options: emoji },
@@ -101,7 +102,16 @@ export type PickSource = {
   has: (value: string) => boolean
 }
 
-const sample = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)]
+/**
+ * A random member. Indexed reads are checked, and every caller here already knows its list
+ * is non-empty — so the impossible case throws rather than widening the return to a maybe
+ * and pushing a null check onto each of them.
+ */
+const sample = <T,>(list: T[]): T => {
+  const value = list[Math.floor(Math.random() * list.length)]
+  if (value === undefined) throw new Error('sample called with an empty list')
+  return value
+}
 
 function fromList(list: string[]): PickSource {
   // Scrambling uses letters from the list itself, so the churn looks like the words.

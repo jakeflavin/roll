@@ -96,8 +96,10 @@ export function RevealCloud({
       for (let y = 0; y < off.height; y += step) {
         for (let x = 0; x < off.width; x += step) {
           const i = (y * off.width + x) * 4
-          if (data[i + 3] <= 128) continue
-          const rgb = `rgb(${data[i]},${data[i + 1]},${data[i + 2]})`
+          // getImageData is RGBA, so the stride keeps these in range; the fallbacks are
+          // for the checker rather than a change in behaviour.
+          if ((data[i + 3] ?? 0) <= 128) continue
+          const rgb = `rgb(${data[i] ?? 0},${data[i + 1] ?? 0},${data[i + 2] ?? 0})`
           if (!first) first = rgb
           else if (rgb !== first) multicolor = true
           points.push([x, y, rgb])
@@ -124,8 +126,11 @@ export function RevealCloud({
     const spreadY = canvas.height * 0.3
     const particles: Particle[] = []
     for (let i = 0; i < count; i++) {
-      const [fx, fy, fromColor] = a[i % a.length]
-      const [tx, ty, toColor] = b[i % b.length]
+      const from = a[i % a.length]
+      const to = b[i % b.length]
+      if (!from || !to) continue
+      const [fx, fy, fromColor] = from
+      const [tx, ty, toColor] = to
       const angle = Math.random() * Math.PI * 2
       const radius = Math.sqrt(Math.random())
       particles.push({

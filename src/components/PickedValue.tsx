@@ -88,7 +88,7 @@ export function PickedValue({
     font: "",
     letterSpacing: "",
     color: "",
-    box: [0, 0],
+    box: [0, 0] as [number, number],
   });
 
   const valueRef = useRef<HTMLDivElement>(null);

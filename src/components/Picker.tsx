@@ -178,7 +178,9 @@ export function Picker({
   }, [roll])
 
   const onSlotSettled = (index: number, value: string) => {
-    onPickRef.current(slots[index].sourceId, value)
+    const slot = slots[index]
+    if (!slot) return
+    onPickRef.current(slot.sourceId, value)
     const next = [...settledRef.current]
     next[index] = value
     settledRef.current = next
@@ -203,7 +205,7 @@ export function Picker({
             target={targets[i] ?? null}
             emptyLabel={slot.source.size === 0 ? EMPTY_TEXT : undefined}
             runId={runId}
-            seed={seedsRef.current[i]}
+            seed={seedsRef.current[i] ?? ''}
             source={slot.source}
             theme={theme}
             animation={animation}

@@ -40,7 +40,12 @@ type Props = {
 }
 
 const rand = (min: number, max: number) => min + Math.random() * (max - min)
-const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)]
+/** A random member. Throws on an empty list rather than widening every call site. */
+const pick = <T,>(list: T[]): T => {
+  const value = list[Math.floor(Math.random() * list.length)]
+  if (value === undefined) throw new Error('pick called with an empty list')
+  return value
+}
 
 /**
  * The celebration that plays over a settled value. Drawn on a canvas rather than as
@@ -147,8 +152,12 @@ export function Celebration({
           ctx.restore()
         }
       } else {
-        while (nextBurst < bursts.length && elapsed >= bursts[nextBurst].at) {
-          const burst = bursts[nextBurst++]
+        // The burst is read before it is tested, so the queue position and the value
+        // cannot disagree about whether there is one.
+        while (nextBurst < bursts.length) {
+          const burst = bursts[nextBurst]
+          if (!burst || elapsed < burst.at) break
+          nextBurst++
           const color = pick(FIREWORK_COLORS)
           const count = 54
           for (let i = 0; i < count; i++) {

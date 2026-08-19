@@ -24,7 +24,7 @@ describe('addEntry', () => {
     expect(session.entries).toHaveLength(500)
     // The oldest fall away, so the most recent are what remain.
     expect(session.entries.at(-1)?.value).toBe('v519')
-    expect(session.entries[0].value).toBe('v20')
+    expect(session.entries[0]?.value).toBe('v20')
   })
 })
 
@@ -71,7 +71,7 @@ describe('groupByDay', () => {
     )
     expect(days.map((d) => d.label).slice(0, 2)).toEqual(['Today', 'Yesterday'])
     expect(days).toHaveLength(3)
-    expect(days[0].entries[0].value).toBe('New')
+    expect(days[0]?.entries[0]?.value).toBe('New')
   })
 
   it('orders newest first inside a day', () => {
@@ -79,7 +79,7 @@ describe('groupByDay', () => {
       [entry({ value: 'First', at: now - 5_000 }), entry({ value: 'Second', at: now })],
       now,
     )
-    expect(today.entries.map((e) => e.value)).toEqual(['Second', 'First'])
+    expect(today?.entries.map((e) => e.value)).toEqual(['Second', 'First'])
   })
 
   it('returns nothing for an empty session', () => {

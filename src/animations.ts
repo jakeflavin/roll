@@ -7,7 +7,8 @@ export type Animation = {
   description: string
 }
 
-export const animations: Animation[] = [
+/** Non-empty by construction, so the default below is an Animation rather than a maybe. */
+export const animations: [Animation, ...Animation[]] = [
   {
     id: 'roll',
     name: 'Roll',
