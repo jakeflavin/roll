@@ -45,7 +45,7 @@ function fitScale(value: string) {
   return Math.min(1, FULL_SIZE_CHARS / Math.max([...value].length, 1));
 }
 
-type Props = {
+type PickedValueProps = {
   /** The value to land on. Null means this pool is spent, so nothing animates. */
   target: string | null;
   /** Changes to start a run; unchanged means nothing to animate. */
@@ -73,7 +73,7 @@ export function PickedValue({
   emptyLabel,
   label,
   onSettled,
-}: Props) {
+}: PickedValueProps) {
   const [display, setDisplay] = useState(seed);
   const [cloud, setCloud] = useState<{ from: string; to: string } | null>(null);
   const [handoff, setHandoff] = useState(false);

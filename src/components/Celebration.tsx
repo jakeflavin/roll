@@ -28,7 +28,7 @@ type Spark = {
   life: number
 }
 
-type Props = {
+type CelebrationProps = {
   kind: 'confetti' | 'fireworks'
   width: number
   height: number
@@ -59,7 +59,7 @@ export function Celebration({
   originY: originCssY,
   durationMs,
   onDone,
-}: Props) {
+}: CelebrationProps) {
   const ref = useRef<HTMLCanvasElement>(null)
   const done = useRef(onDone)
   done.current = onDone

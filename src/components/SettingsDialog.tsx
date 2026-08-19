@@ -20,7 +20,7 @@ import { BackupControls } from './BackupControls'
 import { CustomThemeControls } from './CustomThemeControls'
 import { ListEditor } from './ListEditor'
 
-type Props = {
+type SettingsDialogProps = {
   open: boolean
   /** Which page to land on when opened; the shortcut for help jumps straight in. */
   openTo?: 'main' | 'shortcuts'
@@ -52,7 +52,7 @@ export function SettingsDialog({
   sample,
   onUpdateList,
   onDeleteList,
-}: Props) {
+}: SettingsDialogProps) {
   const { ref, onBackdropClick } = useDialog(open, onClose)
   // The drawer has two pages: the settings themselves, and the pool of the selected
   // source. Kept here rather than in app state — it is drawer-local navigation.

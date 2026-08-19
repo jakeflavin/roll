@@ -4,7 +4,7 @@ const DISPERSE = 0.34
 const DRIFT_UNTIL = 0.6
 const MAX_PARTICLES = 5000
 
-type Props = {
+type RevealCloudProps = {
   /** The value on screen when the roll started. */
   from: string
   /** The value that reassembles when the cloud clears. */
@@ -52,7 +52,7 @@ export function RevealCloud({
   fadingOut,
   fadeMs,
   onDone,
-}: Props) {
+}: RevealCloudProps) {
   const ref = useRef<HTMLCanvasElement>(null)
   // Kept in a ref so a re-render mid-run never restarts the animation.
   const done = useRef(onDone)

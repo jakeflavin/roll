@@ -3,13 +3,13 @@ import { Plus, Upload, X } from 'lucide-react'
 import { cleanItems, parseCsv, type CustomList } from '../lib/lists'
 import { ConfirmDialog } from './ConfirmDialog'
 
-type Props = {
+type ListEditorProps = {
   list: CustomList
   onUpdate: (patch: Partial<Omit<CustomList, 'id'>>) => void
   onDelete: () => void
 }
 
-export function ListEditor({ list, onUpdate, onDelete }: Props) {
+export function ListEditor({ list, onUpdate, onDelete }: ListEditorProps) {
   const [draft, setDraft] = useState('')
   const [status, setStatus] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)

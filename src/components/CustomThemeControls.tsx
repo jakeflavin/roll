@@ -3,7 +3,7 @@ import { ImagePlus, Trash2 } from 'lucide-react'
 import type { CustomTheme } from '../lib/themes'
 import { ImageError, readBackgroundImage } from '../lib/image'
 
-type Props = {
+type CustomThemeControlsProps = {
   custom: CustomTheme
   onChange: (patch: Partial<CustomTheme>) => void
 }
@@ -38,7 +38,7 @@ function Segmented<T extends string>({
  * The rows that build the custom theme, shown inside its card once it is the selected
  * theme. The page behind the drawer is the preview: every change lands on it live.
  */
-export function CustomThemeControls({ custom, onChange }: Props) {
+export function CustomThemeControls({ custom, onChange }: CustomThemeControlsProps) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [working, setWorking] = useState(false)

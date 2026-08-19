@@ -5,14 +5,14 @@ import { sourceById } from '../lib/sources'
 import { useDialog } from '../hooks/useDialog'
 import { ConfirmDialog } from './ConfirmDialog'
 
-type Props = {
+type SessionDialogProps = {
   open: boolean
   onClose: () => void
   session: Session
   onClear: () => void
 }
 
-export function SessionDialog({ open, onClose, session, onClear }: Props) {
+export function SessionDialog({ open, onClose, session, onClear }: SessionDialogProps) {
   const { ref, onBackdropClick } = useDialog(open, onClose)
   const [confirming, setConfirming] = useState(false)
 

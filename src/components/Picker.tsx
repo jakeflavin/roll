@@ -39,7 +39,7 @@ function slotScale(count: number) {
   return count <= 1 ? 1 : Math.max(0.34, 1 / (1 + 0.45 * (count - 1)))
 }
 
-type Props = {
+type PickerProps = {
   slots: Slot[]
   theme: Theme
   animation: AnimationId
@@ -63,7 +63,7 @@ export function Picker({
   tools,
   initialValues = [],
   onSettle,
-}: Props) {
+}: PickerProps) {
   const [runId, setRunId] = useState(0)
   const [targets, setTargets] = useState<Array<string | null>>([])
   const [busy, setBusy] = useState(false)

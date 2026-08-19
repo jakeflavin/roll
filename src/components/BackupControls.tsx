@@ -5,14 +5,14 @@ import type { CustomList } from '../lib/lists'
 import type { Session } from '../lib/session'
 import type { Settings } from '../hooks/useSettings'
 
-type Props = {
+type BackupControlsProps = {
   settings: Settings
   session: Session
   lists: CustomList[]
   onRestore: (settings: Settings, session: Session, lists: CustomList[]) => void
 }
 
-export function BackupControls({ settings, session, lists, onRestore }: Props) {
+export function BackupControls({ settings, session, lists, onRestore }: BackupControlsProps) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [status, setStatus] = useState<{ text: string; error: boolean } | null>(null)
 

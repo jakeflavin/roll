@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, Share } from 'lucide-react'
 
-type Props = {
+type ShareButtonProps = {
   /** Built by the app so the shared link always matches what is on screen. */
   url: string
 }
 
-export function ShareButton({ url }: Props) {
+export function ShareButton({ url }: ShareButtonProps) {
   const [copied, setCopied] = useState(false)
   const timer = useRef(0)
 

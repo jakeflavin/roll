@@ -1,6 +1,6 @@
 import { useDialog } from '../hooks/useDialog'
 
-type Props = {
+type ConfirmDialogProps = {
   open: boolean
   title: string
   body: string
@@ -14,7 +14,7 @@ type Props = {
  * app cannot rebuild — a session is also the memory that prevents repeats — so they
  * ask first.
  */
-export function ConfirmDialog({ open, title, body, confirmLabel, onConfirm, onCancel }: Props) {
+export function ConfirmDialog({ open, title, body, confirmLabel, onConfirm, onCancel }: ConfirmDialogProps) {
   // Cancelling is the safe outcome, so dismissing by any means cancels.
   const { ref } = useDialog(open, onCancel)
 
