@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { ImagePlus, Trash2 } from 'lucide-react'
-import type { CustomTheme } from '../themes'
-import { ImageError, readBackgroundImage } from '../image'
+import type { CustomTheme } from '../lib/themes'
+import { ImageError, readBackgroundImage } from '../lib/image'
 
 type Props = {
   custom: CustomTheme

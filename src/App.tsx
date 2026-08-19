@@ -4,20 +4,20 @@ import { Picker } from './components/Picker'
 import { SettingsDialog } from './components/SettingsDialog'
 import { SessionDialog } from './components/SessionDialog'
 import { ShareButton } from './components/ShareButton'
-import { resolveTheme } from './themes'
+import { resolveTheme } from './lib/themes'
 import {
   allSources,
   createSource,
   defaultSource,
   resolveSourceId,
   sourceKeyFor,
-} from './sources'
-import { buildShareUrl, readInitialValues, settingsToParams } from './shareUrl'
-import { useSettings } from './useSettings'
-import { useSession } from './useSession'
-import { useLists } from './useLists'
-import { isDrawerOpen, isTypingTarget } from './shortcuts'
-import { drawnFor } from './session'
+} from './lib/sources'
+import { buildShareUrl, readInitialValues, settingsToParams } from './lib/shareUrl'
+import { useSettings } from './hooks/useSettings'
+import { useSession } from './hooks/useSession'
+import { useLists } from './hooks/useLists'
+import { isDrawerOpen, isTypingTarget } from './lib/shortcuts'
+import { drawnFor } from './lib/session'
 
 export default function App() {
   const [settings, setSettings] = useSettings()

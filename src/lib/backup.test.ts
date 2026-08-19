@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { BACKUP_VERSION, BackupError, backupFilename, buildBackup, parseBackup } from './backup'
 import { emptySession } from './session'
-import { defaultSettings } from './useSettings'
+import { defaultSettings } from '../hooks/useSettings'
 
 const base = defaultSettings
 

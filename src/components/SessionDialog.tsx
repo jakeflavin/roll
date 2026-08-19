@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import { groupByDay, type Session } from '../session'
-import { sourceById } from '../sources'
-import { useDialog } from '../useDialog'
+import { groupByDay, type Session } from '../lib/session'
+import { sourceById } from '../lib/sources'
+import { useDialog } from '../hooks/useDialog'
 import { ConfirmDialog } from './ConfirmDialog'
 
 type Props = {

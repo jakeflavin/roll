@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Plus, Upload, X } from 'lucide-react'
-import { cleanItems, parseCsv, type CustomList } from '../lists'
+import { cleanItems, parseCsv, type CustomList } from '../lib/lists'
 import { ConfirmDialog } from './ConfirmDialog'
 
 type Props = {

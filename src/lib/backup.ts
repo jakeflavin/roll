@@ -3,7 +3,7 @@ import { isCustomId, isList, type CustomList } from './lists'
 import { emptySession, type Session, type SessionEntry } from './session'
 import { sources, type SourceId } from './sources'
 import { isThemeId, sanitizeCustomTheme } from './themes'
-import type { Settings } from './useSettings'
+import type { Settings } from '../hooks/useSettings'
 
 /** Bumped only if the shape changes in a way an older file cannot satisfy. */
 export const BACKUP_VERSION = 1

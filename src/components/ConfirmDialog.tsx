@@ -1,4 +1,4 @@
-import { useDialog } from '../useDialog'
+import { useDialog } from '../hooks/useDialog'
 
 type Props = {
   open: boolean

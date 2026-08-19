@@ -10,10 +10,10 @@ import {
   animationDuration,
   isCelebration,
   type AnimationId,
-} from '../animations'
-import type { PickSource } from '../sources'
-import type { Theme } from '../themes'
-import { isDrawerOpen, isTypingTarget, targetElement } from '../shortcuts'
+} from '../lib/animations'
+import type { PickSource } from '../lib/sources'
+import type { Theme } from '../lib/themes'
+import { isDrawerOpen, isTypingTarget, targetElement } from '../lib/shortcuts'
 import { Celebration } from './Celebration'
 import { PickedValue } from './PickedValue'
 

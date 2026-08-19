@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react'
 import { Download, Upload } from 'lucide-react'
-import { BackupError, buildBackup, downloadBackup, parseBackup } from '../backup'
-import type { CustomList } from '../lists'
-import type { Session } from '../session'
-import type { Settings } from '../useSettings'
+import { BackupError, buildBackup, downloadBackup, parseBackup } from '../lib/backup'
+import type { CustomList } from '../lib/lists'
+import type { Session } from '../lib/session'
+import type { Settings } from '../hooks/useSettings'
 
 type Props = {
   settings: Settings

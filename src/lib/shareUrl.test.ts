@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { hasShareParams, settingsFromParams, settingsToParams } from './shareUrl'
-import { defaultSettings } from './useSettings'
+import { defaultSettings } from '../hooks/useSettings'
 
 const base = defaultSettings
 const parse = (query: string) => settingsFromParams(new URLSearchParams(query), base)

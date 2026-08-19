@@ -2,7 +2,7 @@ import { animations, type AnimationId } from './animations'
 import type { SourceId } from './sources'
 import { CUSTOM_THEME_ID, isThemeId, sanitizeCustomTheme, type CustomTheme } from './themes'
 // Type-only, so this module and useSettings do not form a runtime import cycle.
-import type { Settings } from './useSettings'
+import type { Settings } from '../hooks/useSettings'
 
 /**
  * Only the options that apply to the chosen source are written, so a shared emoji

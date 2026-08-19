@@ -1,7 +1,7 @@
-import { defaultCustomTheme, defaultTheme, sanitizeCustomTheme, type CustomTheme } from './themes'
-import { defaultAnimation, type AnimationId } from './animations'
-import { defaultSource, type SourceId } from './sources'
-import { readInitialSettings } from './shareUrl'
+import { defaultCustomTheme, defaultTheme, sanitizeCustomTheme, type CustomTheme } from '../lib/themes'
+import { defaultAnimation, type AnimationId } from '../lib/animations'
+import { defaultSource, type SourceId } from '../lib/sources'
+import { readInitialSettings } from '../lib/shareUrl'
 import { usePersistentState } from './usePersistentState'
 
 export type Settings = {
