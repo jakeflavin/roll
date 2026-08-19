@@ -14,19 +14,18 @@ export const shortcuts: Shortcut[] = [
 /** Narrows an event target to an element; keydown can also target window or document,
  *  which have none of the element methods a guard would want to call. */
 export function targetElement(target: EventTarget | null) {
-  return target instanceof Element ? target : null
+  return target instanceof HTMLElement ? target : null
 }
 
 /** True while the keystroke belongs to something the user is typing into. */
 export function isTypingTarget(target: EventTarget | null) {
   const el = targetElement(target)
   if (!el) return false
-  const tag = el.tagName
   return (
-    tag === 'INPUT' ||
-    tag === 'TEXTAREA' ||
-    tag === 'SELECT' ||
-    (el as HTMLElement).isContentEditable
+    el.isContentEditable ||
+    el.tagName === 'INPUT' ||
+    el.tagName === 'TEXTAREA' ||
+    el.tagName === 'SELECT'
   )
 }
 
