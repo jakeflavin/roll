@@ -9,30 +9,39 @@ export function useLists() {
   })
 
   /** Returns the new list, so a caller can select it straight away. */
-  const create = useCallback((name: string, items: string[] = []) => {
-    const list: CustomList = {
-      id: newListId(),
-      name: name.trim() || 'My list',
-      items: cleanItems(items),
-    }
-    setLists((current) => [...current, list])
-    return list
-  }, [setLists])
+  const create = useCallback(
+    (name: string, items: string[] = []) => {
+      const list: CustomList = {
+        id: newListId(),
+        name: name.trim() || 'My list',
+        items: cleanItems(items),
+      }
+      setLists((current) => [...current, list])
+      return list
+    },
+    [setLists],
+  )
 
   /** Entries are always cleaned, so duplicates cannot enter by any route. */
-  const update = useCallback((id: string, patch: Partial<Omit<CustomList, 'id'>>) => {
-    setLists((current) =>
-      current.map((list) =>
-        list.id === id
-          ? { ...list, ...patch, items: patch.items ? cleanItems(patch.items) : list.items }
-          : list,
-      ),
-    )
-  }, [setLists])
+  const update = useCallback(
+    (id: string, patch: Partial<Omit<CustomList, 'id'>>) => {
+      setLists((current) =>
+        current.map((list) =>
+          list.id === id
+            ? { ...list, ...patch, items: patch.items ? cleanItems(patch.items) : list.items }
+            : list,
+        ),
+      )
+    },
+    [setLists],
+  )
 
-  const remove = useCallback((id: string) => {
-    setLists((current) => current.filter((list) => list.id !== id))
-  }, [setLists])
+  const remove = useCallback(
+    (id: string) => {
+      setLists((current) => current.filter((list) => list.id !== id))
+    },
+    [setLists],
+  )
 
   /** Swaps in lists wholesale, which is what importing a backup does. */
   const replace = useCallback((next: CustomList[]) => setLists(next), [setLists])

@@ -1,13 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  History,
-  Keyboard,
-  Plus,
-  X,
-} from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, History, Keyboard, Plus, X } from 'lucide-react'
 import { buildCustomTheme, CUSTOM_THEME_ID, themes, type CustomTheme } from '../lib/themes'
 import { animations } from '../lib/animations'
 import { allSources, sources, type SourceId } from '../lib/sources'
@@ -82,8 +74,7 @@ export function SettingsDialog({
   const available = allSources(lists)
   const unused = available.filter((s) => !settings.sourceIds.includes(s.id))
   const editingList = lists.find((l) => l.id === (editing ?? settings.sourceIds[0]))
-  const source =
-    available.find((s) => s.id === (viewing ?? settings.sourceIds[0])) ?? available[0]
+  const source = available.find((s) => s.id === (viewing ?? settings.sourceIds[0])) ?? available[0]
 
   /** A group's own settings, as rows inside that group's card. They read as belonging
    *  to the group above them rather than as more controls in a flat stack. */
@@ -456,7 +447,6 @@ export function SettingsDialog({
               onRestore={onRestore}
             />
           </fieldset>
-
         </>
       )}
     </dialog>

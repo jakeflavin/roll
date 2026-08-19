@@ -204,5 +204,7 @@ export function Celebration({
     return () => cancelAnimationFrame(frame)
   }, [kind, width, height, originCssX, originCssY, durationMs])
 
-  return <canvas ref={ref} className="celebration-canvas" aria-hidden="true" style={{ width, height }} />
+  return (
+    <canvas ref={ref} className="celebration-canvas" aria-hidden="true" style={{ width, height }} />
+  )
 }

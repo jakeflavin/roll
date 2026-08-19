@@ -41,7 +41,6 @@ export function readSession(raw: string | null): Session {
   }
 }
 
-
 export function addEntry(session: Session, entry: SessionEntry): Session {
   return {
     ...session,

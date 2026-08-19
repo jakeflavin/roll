@@ -14,7 +14,14 @@ type ConfirmDialogProps = {
  * app cannot rebuild — a session is also the memory that prevents repeats — so they
  * ask first.
  */
-export function ConfirmDialog({ open, title, body, confirmLabel, onConfirm, onCancel }: ConfirmDialogProps) {
+export function ConfirmDialog({
+  open,
+  title,
+  body,
+  confirmLabel,
+  onConfirm,
+  onCancel,
+}: ConfirmDialogProps) {
   // Cancelling is the safe outcome, so dismissing by any means cancels.
   const { ref } = useDialog(open, onCancel)
 

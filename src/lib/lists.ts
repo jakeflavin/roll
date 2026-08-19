@@ -22,7 +22,6 @@ export function readLists(raw: string | null): CustomList[] {
   return Array.isArray(parsed) ? parsed.filter(isList) : []
 }
 
-
 export function isList(value: unknown): value is CustomList {
   const l = (value ?? {}) as Record<string, unknown>
   return (

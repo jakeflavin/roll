@@ -78,9 +78,7 @@ function customFromParam(raw: string | null, base: CustomTheme): CustomTheme {
 }
 
 export function hasShareParams(params: URLSearchParams) {
-  return ['pick', 'theme', 'anim', 'min', 'max', 'lower', 'repeat'].some((key) =>
-    params.has(key),
-  )
+  return ['pick', 'theme', 'anim', 'min', 'max', 'lower', 'repeat'].some((key) => params.has(key))
 }
 
 export function readInitialSettings(stored: Settings): Settings {

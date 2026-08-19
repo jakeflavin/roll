@@ -86,7 +86,13 @@ describe('hasShareParams', () => {
 })
 
 describe('custom theme in a link', () => {
-  const custom = { ...base.customTheme, from: '#112233', to: '#445566', angle: 200, ink: 'dark' as const }
+  const custom = {
+    ...base.customTheme,
+    from: '#112233',
+    to: '#445566',
+    angle: 200,
+    ink: 'dark' as const,
+  }
 
   it('carries the gradient when the custom theme is the one selected', () => {
     const params = settingsToParams({ ...base, themeId: 'custom', customTheme: custom })
@@ -106,7 +112,11 @@ describe('custom theme in a link', () => {
   it('leaves this device’s own image alone, since a refresh reads back its own link', () => {
     const mine = {
       ...base,
-      customTheme: { ...base.customTheme, mode: 'image' as const, image: 'data:image/jpeg;base64,a' },
+      customTheme: {
+        ...base.customTheme,
+        mode: 'image' as const,
+        image: 'data:image/jpeg;base64,a',
+      },
     }
     const params = settingsToParams({ ...mine, themeId: 'custom' })
     const read = settingsFromParams(params, mine)

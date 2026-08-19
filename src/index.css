@@ -15,7 +15,11 @@ body,
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    sans-serif;
   color: var(--text);
   background: var(--bg);
   background-attachment: fixed;
@@ -207,7 +211,9 @@ body {
   border-radius: 999px;
   cursor: pointer;
   backdrop-filter: blur(12px);
-  transition: transform 120ms ease, opacity 120ms ease;
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease;
 }
 
 .roll-button:hover:not(:disabled) {
@@ -888,7 +894,9 @@ body {
   border-radius: 50%;
   opacity: 0.55;
   transform: translateY(-50%);
-  transition: left 150ms ease, opacity 150ms ease;
+  transition:
+    left 150ms ease,
+    opacity 150ms ease;
 }
 
 .switch-row input:checked,

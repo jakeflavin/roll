@@ -21,14 +21,20 @@ export function useSession() {
   })
 
   /** Records a value that stuck. Seeded values are not picks and are not recorded. */
-  const record = useCallback((entry: SessionEntry) => {
-    setSession((current) => addEntry(current, entry))
-  }, [setSession])
+  const record = useCallback(
+    (entry: SessionEntry) => {
+      setSession((current) => addEntry(current, entry))
+    },
+    [setSession],
+  )
 
   /** Begins a fresh cycle for one pool, without discarding what it has already given. */
-  const startOver = useCallback((sourceKey: string) => {
-    setSession((current) => startCycle(current, sourceKey))
-  }, [setSession])
+  const startOver = useCallback(
+    (sourceKey: string) => {
+      setSession((current) => startCycle(current, sourceKey))
+    },
+    [setSession],
+  )
 
   /** Forgets everything, including the memory that prevents repeats. */
   const clear = useCallback(() => setSession(emptySession), [setSession])

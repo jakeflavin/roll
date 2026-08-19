@@ -183,7 +183,12 @@ export function RevealCloud({
         }
 
         // Drift is strongest while scattered and settles to nothing as the digits reform.
-        const loose = t < DISPERSE ? t / DISPERSE : t < DRIFT_UNTIL ? 1 : 1 - (t - DRIFT_UNTIL) / (1 - DRIFT_UNTIL)
+        const loose =
+          t < DISPERSE
+            ? t / DISPERSE
+            : t < DRIFT_UNTIL
+              ? 1
+              : 1 - (t - DRIFT_UNTIL) / (1 - DRIFT_UNTIL)
         const drift = ((now - start) / 1000) * p.speed
         x += Math.cos(drift + p.phase) * wobble * loose
         y += Math.sin(drift * 0.8 + p.phase) * wobble * loose

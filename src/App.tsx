@@ -40,10 +40,7 @@ export default function App() {
   // Built once rather than per slot: it concatenates the built-ins with every custom
   // list, and slots would otherwise rebuild it for each of them.
   const available = useMemo(() => allSources(lists), [lists])
-  const nameOf = useCallback(
-    (id: string) => available.find((s) => s.id === id)?.name,
-    [available],
-  )
+  const nameOf = useCallback((id: string) => available.find((s) => s.id === id)?.name, [available])
 
   // A list can be deleted, or arrive from a link that this browser has never seen, so
   // ids are resolved against what actually exists before anything uses them.

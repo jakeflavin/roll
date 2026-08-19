@@ -18,11 +18,7 @@ export type Backup = {
   lists: CustomList[]
 }
 
-export function buildBackup(
-  settings: Settings,
-  session: Session,
-  lists: CustomList[],
-): Backup {
+export function buildBackup(settings: Settings, session: Session, lists: CustomList[]): Backup {
   return {
     app: 'hat',
     version: BACKUP_VERSION,
@@ -51,8 +47,7 @@ const asBool = (value: unknown, fallback: boolean) =>
 function coerceSettings(raw: unknown, base: Settings, lists: CustomList[] = []): Settings {
   const r = (raw ?? {}) as Raw
   const knows = (id: unknown) =>
-    typeof id === 'string' &&
-    (lists.some((l) => l.id === id) || sources.some((s) => s.id === id))
+    typeof id === 'string' && (lists.some((l) => l.id === id) || sources.some((s) => s.id === id))
 
   // Files written before multi-pick carry a single `sourceId` instead of a list.
   const rawIds = Array.isArray(r.sourceIds)

@@ -1,4 +1,9 @@
-import { defaultCustomTheme, defaultTheme, sanitizeCustomTheme, type CustomTheme } from '../lib/themes'
+import {
+  defaultCustomTheme,
+  defaultTheme,
+  sanitizeCustomTheme,
+  type CustomTheme,
+} from '../lib/themes'
 import { defaultAnimation, type AnimationId } from '../lib/animations'
 import { defaultSource, type SourceId } from '../lib/sources'
 import { readInitialSettings } from '../lib/shareUrl'
@@ -56,7 +61,6 @@ export function migrate(stored: Partial<Settings> & { sourceId?: SourceId }): Se
     customTheme: sanitizeCustomTheme(rest.customTheme),
   }
 }
-
 
 /** Everything that shapes a roll, persisted, with a shared link's options winning. */
 export function useSettings() {

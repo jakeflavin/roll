@@ -19,12 +19,7 @@ export function SessionDialog({ open, onClose, session, onClear }: SessionDialog
   const days = groupByDay(session.entries)
 
   return (
-    <dialog
-      ref={ref}
-      className="drawer drawer-session"
-      onClose={onClose}
-      onClick={onBackdropClick}
-    >
+    <dialog ref={ref} className="drawer drawer-session" onClose={onClose} onClick={onBackdropClick}>
       <div className="settings-header">
         <h2>Session</h2>
         <button className="icon-button" onClick={onClose} aria-label="Close session">

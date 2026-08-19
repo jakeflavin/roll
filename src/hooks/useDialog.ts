@@ -22,8 +22,7 @@ export function useDialog(open: boolean, onClose: () => void) {
   const onBackdropClick = (e: MouseEvent<HTMLDialogElement>) => {
     if (e.target !== ref.current) return
     const { top, right, bottom, left } = ref.current.getBoundingClientRect()
-    const outside =
-      e.clientX < left || e.clientX > right || e.clientY < top || e.clientY > bottom
+    const outside = e.clientX < left || e.clientX > right || e.clientY < top || e.clientY > bottom
     if (outside) onClose()
   }
 

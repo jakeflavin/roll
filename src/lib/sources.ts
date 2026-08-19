@@ -11,14 +11,7 @@ import {
 } from './data'
 
 export type BuiltInSourceId =
-  | 'number'
-  | 'emoji'
-  | 'animal'
-  | 'color'
-  | 'letter'
-  | 'bodyPart'
-  | 'state'
-  | 'feeling'
+  'number' | 'emoji' | 'animal' | 'color' | 'letter' | 'bodyPart' | 'state' | 'feeling'
 
 /** Built-in ids, plus `custom:*` for a user's own list. */
 export type SourceId = BuiltInSourceId | string
@@ -107,7 +100,7 @@ export type PickSource = {
  * is non-empty — so the impossible case throws rather than widening the return to a maybe
  * and pushing a null check onto each of them.
  */
-const sample = <T,>(list: T[]): T => {
+const sample = <T>(list: T[]): T => {
   const value = list[Math.floor(Math.random() * list.length)]
   if (value === undefined) throw new Error('sample called with an empty list')
   return value
@@ -115,7 +108,14 @@ const sample = <T,>(list: T[]): T => {
 
 function fromList(list: string[]): PickSource {
   // Scrambling uses letters from the list itself, so the churn looks like the words.
-  const chars = [...new Set(list.join('').replace(/[^A-Za-z]/g, '').split(''))]
+  const chars = [
+    ...new Set(
+      list
+        .join('')
+        .replace(/[^A-Za-z]/g, '')
+        .split(''),
+    ),
+  ]
   return {
     size: list.length,
     pick: () => sample(list),

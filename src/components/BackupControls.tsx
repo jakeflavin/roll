@@ -66,9 +66,7 @@ export function BackupControls({ settings, session, lists, onRestore }: BackupCo
       </div>
 
       {/* Only speaks when there is something to report. */}
-      {status && (
-        <p className={`settings-hint${status.error ? ' is-error' : ''}`}>{status.text}</p>
-      )}
+      {status && <p className={`settings-hint${status.error ? ' is-error' : ''}`}>{status.text}</p>}
     </>
   )
 }
