@@ -89,6 +89,3 @@ export function celebrationShowAt(animation: AnimationId) {
 export function isCelebration(animation: AnimationId) {
   return animation === 'confetti' || animation === 'fireworks'
 }
-
-/** Shown in place of a value once the whole pool has been used. */
-export const EXHAUSTED_TEXT = 'All picked'

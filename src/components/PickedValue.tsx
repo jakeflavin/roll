@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Label, Slot, SlotStage, ValueCover, Value } from './Picker.styled'
+import { Label, Message, Slot, SlotStage, ValueCover, Value } from './Picker.styled'
 import type { Theme } from '@/lib/themes'
 import {
   CELEBRATION_SWAP_MS,
   celebrationShowAt,
-  EXHAUSTED_TEXT,
   FLIP_COUNT,
   FLIP_MS,
   HANDOFF_MS,
@@ -14,6 +13,8 @@ import {
   SCRAMBLE_MS,
   type AnimationId,
 } from '@/lib/animations'
+import { charCount, fitScale, lineCount } from '@/lib/fit'
+import { EXHAUSTED_TEXT } from '@/lib/messages'
 import type { PickSource } from '@/lib/sources'
 import { RevealCloud } from './RevealCloud'
 
@@ -38,11 +39,16 @@ function flipKeyframes(count: number) {
 
 const FLIP_FRAMES = flipKeyframes(FLIP_COUNT)
 
-/** Values up to this many characters render at full size; longer ones scale down. */
-const FULL_SIZE_CHARS = 5
-
-function fitScale(value: string) {
-  return Math.min(1, FULL_SIZE_CHARS / Math.max([...value].length, 1))
+/**
+ * Two caps, whichever is smaller: the measure, and the share of the stage's height this
+ * slot can occupy once any lines a wrapped value needs are accounted for. The second is
+ * what keeps every slot on screen however many there are.
+ *
+ * toFixed, not Intl: this is a CSS calc(), where a comma is a syntax error.
+ */
+function sizeFor(chars: number, scale: number) {
+  const measure = (fitScale(chars) * scale).toFixed(3)
+  return `min(calc(var(--display-size) * ${measure}), calc(42cqh / (var(--slots) * ${lineCount(chars)})))`
 }
 
 type PickedValueProps = {
@@ -56,6 +62,11 @@ type PickedValueProps = {
   animation: AnimationId
   /** Shrinks the type when several values share the stage. */
   scale: number
+  /**
+   * The length the stage has agreed to size itself to, where there is more than one slot
+   * to agree. Null means this slot is alone and fits whatever it is showing.
+   */
+  fitChars: number | null
   /** Set when the pool is empty, which reads differently from having used it all up. */
   emptyLabel?: string
   label?: string
@@ -70,11 +81,16 @@ export function PickedValue({
   theme,
   animation,
   scale,
+  fitChars,
   emptyLabel,
   label,
   onSettled,
 }: PickedValueProps) {
   const [display, setDisplay] = useState(seed)
+  // What the app has to say when there is no value: an empty pool, or one that has
+  // now been used up. Held apart from `display` because it is not a value — it is set
+  // differently, and it is never settled, recorded or shared.
+  const [message, setMessage] = useState<string | null>(emptyLabel ?? null)
   const [cloud, setCloud] = useState<{ from: string; to: string } | null>(null)
   const [handoff, setHandoff] = useState(false)
   const [settleKey, setSettleKey] = useState(0)
@@ -121,7 +137,9 @@ export function PickedValue({
   useEffect(() => {
     stop()
     setDisplay(seed)
-  }, [seed, stop])
+    // An empty pool says so from the moment it arrives, without waiting for a roll.
+    setMessage(emptyLabel ?? null)
+  }, [seed, emptyLabel, stop])
 
   // Only an actual new run animates. Without this, swapping a slot's group remounts
   // this component, whose effect would then replay the previous run's target and
@@ -134,11 +152,13 @@ export function PickedValue({
 
     if (target === null) {
       // An empty pool never had anything to give, which is not the same as having
-      // worked through everything it had.
-      setDisplay(emptyLabel ?? EXHAUSTED_TEXT)
+      // worked through everything it had. Either way this is the app speaking, so it
+      // goes to the message and the slot settles on nothing.
+      setMessage(emptyLabel ?? EXHAUSTED_TEXT)
       return
     }
 
+    setMessage(null)
     setRunning(true)
 
     const settle = (final: string) => {
@@ -305,26 +325,28 @@ export function PickedValue({
             the value's style for scale and blur, and quietly dropped an opacity target
             set alongside them. */}
         <ValueCover data-covered={covered || undefined}>
-          <Value
-            ref={valueRef}
-            key={settleKey}
-                        aria-live="polite"
-            animate={animate}
-            transition={transition}
-            style={{
-              fontFamily: theme.displayFont,
-              fontWeight: theme.displayWeight,
-              letterSpacing: theme.displayTracking,
-              // Three caps, whichever is smallest: the base size, a reduction for long
-              // values, and the share of the stage's height this slot can occupy — the
-              // last is what keeps every slot on screen however many there are.
-              // toFixed, not Intl: this is a CSS calc(), where a comma is a syntax error.
-              fontSize: `min(calc(var(--display-size) * ${(fitScale(display) * scale).toFixed(3)}), calc(42cqh / var(--slots)))`,
-            }}
-          >
-            {display}
-          </Value>
-          </ValueCover>
+          {message ? (
+            // Deliberately not the display face: a message that looked like a result
+            // was read as one, and travelled like one too.
+            <Message aria-live="polite">{message}</Message>
+          ) : (
+            <Value
+              ref={valueRef}
+              key={settleKey}
+              aria-live="polite"
+              animate={animate}
+              transition={transition}
+              style={{
+                fontFamily: theme.displayFont,
+                fontWeight: theme.displayWeight,
+                letterSpacing: theme.displayTracking,
+                fontSize: sizeFor(fitChars ?? charCount(display), scale),
+              }}
+            >
+              {display}
+            </Value>
+          )}
+        </ValueCover>
 
         {cloud && (
           <RevealCloud
@@ -344,7 +366,7 @@ export function PickedValue({
             }}
           />
         )}
-        </SlotStage>
-      </Slot>
+      </SlotStage>
+    </Slot>
   )
 }

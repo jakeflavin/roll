@@ -13,8 +13,12 @@ export function settingsToParams(settings: Settings, values: string[] = []) {
   // Repeated rather than joined: a value like "Nguyen, Anh" would not survive being
   // split back out of a comma-separated list.
   for (const id of settings.sourceIds) params.append('pick', id)
-  // The results ride along, so a refresh or a shared link keeps them on screen.
-  for (const value of values) params.append('v', value)
+  // The results ride along, so a refresh or a shared link keeps them on screen. Each
+  // `v` belongs to the slot at its own index, so an empty one in the middle has to stay
+  // to hold the place — but trailing empties hold nothing, and are dropped.
+  let last = values.length
+  while (last > 0 && !values[last - 1]) last--
+  for (const value of values.slice(0, last)) params.append('v', value)
   if (settings.sourceIds.includes('number')) {
     params.set('min', String(settings.min))
     params.set('max', String(settings.max))

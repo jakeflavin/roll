@@ -123,4 +123,27 @@ export const Value = styled(motion.div)`
   text-align: center;
   text-wrap: balance;
   user-select: none;
+  /* The stage stops shrinking type at a readable floor, so anything longer than that
+     floor allows has to wrap. Anywhere rather than break-word, because a single
+     unbroken 40-character entry has no space to break at. */
+  max-width: 100%;
+  overflow-wrap: anywhere;
+`
+
+/**
+ * What the stage says when it has no value: an empty pool, or one that is used up.
+ *
+ * Set as the app's own voice rather than in the display face. Dressed as a result it
+ * was read as one — "All picked" looks like the thing that got picked — and the
+ * treatment is the only thing on screen that can say otherwise.
+ */
+export const Message = styled.p`
+  margin: 0;
+  max-width: 100%;
+  font-size: clamp(15px, 4cqh, 22px);
+  font-weight: 500;
+  color: var(--dim);
+  text-align: center;
+  text-wrap: balance;
+  user-select: none;
 `

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Reac
 import { Actions, Slots, Stage, Tools } from './Picker.styled'
 import { RollButton } from './buttons.styled'
 import { animationDuration, isCelebration, type AnimationId } from '@/lib/animations'
+import { EMPTY_TEXT } from '@/lib/messages'
 import type { PickSource } from '@/lib/sources'
 import type { Theme } from '@/lib/themes'
 import { isDrawerOpen, isTypingTarget, targetElement } from '@/lib/shortcuts'
@@ -17,9 +18,6 @@ export type Slot = {
   /** Already used this cycle, owned by the session. */
   drawn: Set<string>
 }
-
-/** Shown where a pool has nothing in it, rather than leaving the slot blank. */
-const EMPTY_TEXT = 'No entries yet'
 
 /**
  * Type steps down as slots are added, but gently — the old curve halved it at two
@@ -37,6 +35,8 @@ type PickerProps = {
   allowRepeat: boolean
   onPick: (sourceId: string, value: string) => void
   onStartOver: (sourceKeys: string[]) => void
+  /** Offered in place of rolling when there is nothing anywhere on the stage to draw. */
+  onAddEntries?: () => void
   /** Secondary controls, grouped opposite the roll button. */
   tools?: ReactNode
   /** Values carried in from the URL, one per slot, used only where they still fit. */
@@ -51,6 +51,7 @@ export function Picker({
   allowRepeat,
   onPick,
   onStartOver,
+  onAddEntries,
   tools,
   initialValues = [],
   onSettle,
@@ -78,11 +79,15 @@ export function Picker({
   const onPickRef = useRef(onPick)
   onPickRef.current = onPick
 
+  // Nothing on the stage has anything to give — every pool in play is an empty custom
+  // list. Rolling here has no meaning, so the button offers the way out instead.
+  const nothingToDraw = slots.length > 0 && slots.every((slot) => slot.source.size === 0)
+
   // A slot's seed is whatever fits: the value from the URL if it belongs to this pool,
   // otherwise a fresh pick. Seeds are not draws, so they are never recorded.
   //
   // Emptiness belongs in the key because a pool's identity does not change when its
-  // entries do: filling an empty custom list would otherwise leave "No entries yet" on
+  // entries do: filling an empty custom list would otherwise leave the empty message on
   // screen until the next roll.
   const slotKey = slots.map((s) => `${s.sourceKey}:${s.source.size === 0 ? 0 : 1}`).join('|')
   const seedsRef = useRef<string[]>([])
@@ -90,7 +95,9 @@ export function Picker({
   if (lastSlotKey.current !== slotKey) {
     lastSlotKey.current = slotKey
     seedsRef.current = slots.map((slot, i) => {
-      if (slot.source.size === 0) return EMPTY_TEXT
+      // An empty pool seeds with nothing. The message it shows instead belongs to the
+      // slot's own rendering, and must not reach anything that stores or shares values.
+      if (slot.source.size === 0) return ''
       const carried = initialValues[i]
       return carried && slot.source.has(carried) ? carried : slot.source.pick()
     })
@@ -112,12 +119,15 @@ export function Picker({
   }, [slotKey])
 
   const roll = useCallback(() => {
-    if (busy) return
+    if (busy || nothingToDraw) return
 
     const allSpent = exhausted.length > 0 && exhausted.every(Boolean)
     if (allSpent) onStartOver(slots.map((s) => s.sourceKey))
 
     const nextTargets = slots.map((slot) => {
+      // An empty pool has nothing to offer whatever the settings say, and asking it
+      // would settle an empty string as though it were a draw.
+      if (slot.source.size === 0) return null
       if (allowRepeat) return slot.source.pick()
       // A fresh cycle has just started, so nothing is excluded on this roll.
       if (allSpent) return slot.source.pick()
@@ -152,7 +162,7 @@ export function Picker({
         })
       }
     }
-  }, [busy, runId, exhausted, slots, allowRepeat, animation, onStartOver])
+  }, [busy, nothingToDraw, runId, exhausted, slots, allowRepeat, animation, onStartOver])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -170,7 +180,10 @@ export function Picker({
 
   const onSlotSettled = (index: number, value: string) => {
     const slot = slots[index]
-    if (!slot) return
+    // A slot only settles on something it actually drew — messages resolve inside the
+    // slot and never arrive here — but history is the one thing the user is asked to
+    // trust, so it is checked rather than assumed.
+    if (!slot || !value) return
     onPickRef.current(slot.sourceId, value)
     const next = [...settledRef.current]
     next[index] = value
@@ -179,16 +192,22 @@ export function Picker({
   }
 
   const everySlotSpent = exhausted.length > 0 && exhausted.every(Boolean)
+
+  // Values sharing a stage are peers, so they take one measure between them — the
+  // longest thing any of their pools could give, which is what keeps it from moving on
+  // every roll. A slot on its own has nothing to agree with, and fits what it is
+  // actually showing, so the number stays as large as the screen allows.
+  const fitChars =
+    slots.length > 1
+      ? slots.reduce((chars, slot) => Math.max(chars, slot.source.maxLength), 1)
+      : null
   const scale = slotScale(slots.length)
 
   return (
     <Stage>
-      {/* --slots lets the stylesheet cap each value against the stage's own height, so
-          adding groups shrinks the type rather than pushing any of it out of view. */}
-      <Slots
-        ref={stageRef}
-        style={{ '--slots': slots.length } as CSSProperties}
-      >
+      {/* --slots lets each value cap itself against the stage's own height, so adding
+          groups shrinks the type rather than pushing any of it out of view. */}
+      <Slots ref={stageRef} style={{ '--slots': slots.length } as CSSProperties}>
         {slots.map((slot, i) => (
           <PickedValue
             key={slot.sourceKey}
@@ -200,6 +219,7 @@ export function Picker({
             theme={theme}
             animation={animation}
             scale={scale}
+            fitChars={fitChars}
             label={slots.length > 1 ? slot.name : undefined}
             onSettled={(value) => onSlotSettled(i, value)}
           />
@@ -224,9 +244,15 @@ export function Picker({
           the window — a full-width one became a 700px target on a desktop. */}
       <Actions>
         <Tools>{tools}</Tools>
-        <RollButton onClick={roll} disabled={busy}>
-          {busy ? 'Rolling…' : everySlotSpent ? 'Start over' : 'Roll'}
-        </RollButton>
+        {nothingToDraw ? (
+          // Not a disabled Roll: the hat is empty because nothing has been put in it,
+          // and the only useful thing this button can do is go and open the list.
+          <RollButton onClick={onAddEntries}>Add entries</RollButton>
+        ) : (
+          <RollButton onClick={roll} disabled={busy}>
+            {busy ? 'Rolling…' : everySlotSpent ? 'Start over' : 'Roll'}
+          </RollButton>
+        )}
       </Actions>
     </Stage>
   )

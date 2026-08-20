@@ -3,7 +3,7 @@ import { Header, Main, Shell, Title } from './App.styled'
 import { IconButton } from './components/buttons.styled'
 import { History, Settings as SettingsIcon } from 'lucide-react'
 import { Picker } from './components/Picker'
-import { SettingsDialog } from './components/SettingsDialog'
+import { SettingsDialog, type SettingsPage } from './components/SettingsDialog'
 import { SessionDialog } from './components/SessionDialog'
 import { ShareButton } from './components/ShareButton'
 import { resolveTheme } from './lib/themes'
@@ -24,7 +24,8 @@ import { drawnFor } from './lib/session'
 export default function App() {
   const [settings, setSettings] = useSettings()
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [settingsPage, setSettingsPage] = useState<'main' | 'shortcuts'>('main')
+  const [settingsPage, setSettingsPage] = useState<SettingsPage>('main')
+  const [settingsList, setSettingsList] = useState<string | null>(null)
   const [sessionOpen, setSessionOpen] = useState(false)
   const [results, setResults] = useState<string[]>(readInitialValues)
   const { session, record, startOver, clear, replace: replaceSession } = useSession()
@@ -79,9 +80,10 @@ export default function App() {
     [record, min, max, bothCases, nameOf],
   )
 
-  // An empty custom list picks an empty string, which would leave the theme swatches
-  // blank, so the fallback covers empty rather than only missing.
-  const sample = results[0] || '42'
+  // The swatches preview a real value. An empty pool settles on nothing, so the first
+  // slot that actually drew something is the one worth showing — and where nothing has,
+  // a stand-in beats eight blank swatches.
+  const sample = results.find(Boolean) ?? '42'
   const shareUrl = useMemo(() => buildShareUrl(settings, results), [settings, results])
 
   const onStartOver = useCallback(
@@ -127,6 +129,10 @@ export default function App() {
     root.style.setProperty('--dim', theme.muted)
     root.style.setProperty('--surface', theme.surface)
     root.style.setProperty('--line', theme.border)
+    // The parts of the page the browser draws itself — number spinners, the select
+    // popup, the caret, scrollbars — take their appearance from this and nothing else.
+    // Four of these themes are light, and the stylesheet can only name one.
+    root.style.colorScheme = theme.scheme
   }, [theme])
 
   return (
@@ -152,15 +158,19 @@ export default function App() {
           allowRepeat={settings.repeat}
           onPick={onPick}
           onStartOver={onStartOver}
+          // Nothing on the stage has anything to give, so the button offers the way out
+          // rather than a roll that cannot happen — straight into the empty list.
+          onAddEntries={() => {
+            setSettingsList(slots.find((slot) => slot.source.size === 0)?.sourceId ?? null)
+            setSettingsPage('list')
+            setSettingsOpen(true)
+          }}
           initialValues={results}
           onSettle={setResults}
           tools={
             <>
               <ShareButton url={shareUrl} />
-              <IconButton
-                onClick={() => setSessionOpen(true)}
-                aria-label="View this session"
-              >
+              <IconButton onClick={() => setSessionOpen(true)} aria-label="View this session">
                 <History size={18} />
               </IconButton>
             </>
@@ -178,6 +188,7 @@ export default function App() {
       <SettingsDialog
         open={settingsOpen}
         openTo={settingsPage}
+        openList={settingsList}
         onClose={() => setSettingsOpen(false)}
         settings={settings}
         onChange={setSettings}

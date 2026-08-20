@@ -12,10 +12,15 @@ import { ShortcutsPage } from './ShortcutsPage'
 import { SourceOptionsPage } from './SourceOptionsPage'
 import { SourceSettings } from './SourceSettings'
 
+/** The pages a caller outside the drawer can ask it to open on. */
+export type SettingsPage = 'main' | 'shortcuts' | 'list'
+
 type SettingsDialogProps = {
   open: boolean
   /** Which page to land on when opened; the shortcut for help jumps straight in. */
-  openTo?: 'main' | 'shortcuts'
+  openTo?: SettingsPage
+  /** Which list, when opening on the list page. */
+  openList?: SourceId | null
   onClose: () => void
   settings: Settings
   onChange: (next: Settings) => void
@@ -38,6 +43,7 @@ type SettingsDialogProps = {
 export function SettingsDialog({
   open,
   openTo = 'main',
+  openList = null,
   onClose,
   settings,
   onChange,
@@ -63,8 +69,10 @@ export function SettingsDialog({
 
   // Reopening should land where the caller asked, never on whatever page was last seen.
   useEffect(() => {
-    if (open) setPage(openTo)
-  }, [open, openTo])
+    if (!open) return
+    setPage(openTo)
+    if (openTo === 'list') setEditing(openList)
+  }, [open, openTo, openList])
 
   const available = allSources(lists)
   const editingList = lists.find((l) => l.id === (editing ?? settings.sourceIds[0]))

@@ -131,3 +131,22 @@ describe('custom theme in a link', () => {
     expect(read.customTheme.angle).toBe(9)
   })
 })
+
+describe('values in the link', () => {
+  const numbers = { ...defaultSettings, sourceIds: ['number'] }
+
+  it('carries what was actually drawn', () => {
+    expect(settingsToParams(numbers, ['42']).getAll('v')).toEqual(['42'])
+  })
+
+  it('drops a trailing empty rather than writing a value that is not one', () => {
+    // An empty pool settles on nothing. It used to serialise its placeholder here, so
+    // a shared link arrived carrying "No entries yet" as though someone had drawn it.
+    expect(settingsToParams(numbers, ['']).getAll('v')).toEqual([])
+    expect(settingsToParams(numbers, ['42', '']).getAll('v')).toEqual(['42'])
+  })
+
+  it('keeps an empty in the middle, which is holding a slot open', () => {
+    expect(settingsToParams(numbers, ['42', '', 'Fox']).getAll('v')).toEqual(['42', '', 'Fox'])
+  })
+})
