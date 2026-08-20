@@ -56,7 +56,9 @@ export const AnimationGrid = styled.div`
 export const AnimationOption = styled.button<{ $active?: boolean }>`
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 4px;
+  min-height: 44px;
   padding: 10px 12px;
   font: inherit;
   color: var(--text);

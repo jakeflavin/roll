@@ -11,6 +11,11 @@ const glass = css`
   border-radius: 999px;
   cursor: pointer;
   backdrop-filter: blur(12px);
+
+  /* A control is an offer to do something, and paper cannot take it. */
+  @media print {
+    display: none;
+  }
 `
 
 export const RollButton = styled.button`
@@ -51,8 +56,10 @@ export const IconButton = styled.button<{ $quiet?: boolean }>`
   ${glass}
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  /* The minimum a finger can be asked to find. The glyph inside stays where it was;
+     it is the box around it that grew. */
+  width: 44px;
+  height: 44px;
   transition: transform 120ms ease;
 
   &:hover {
@@ -67,8 +74,8 @@ export const IconButton = styled.button<{ $quiet?: boolean }>`
   ${(props) =>
     props.$quiet &&
     css`
-      width: 34px;
-      height: 34px;
+      width: 40px;
+      height: 40px;
       color: var(--dim);
       background: transparent;
       backdrop-filter: none;

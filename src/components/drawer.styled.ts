@@ -1,4 +1,4 @@
-import { styled } from 'styled-components'
+import { css, styled } from 'styled-components'
 
 /**
  * The shell both drawers wear — settings and session — and the spacing scale their
@@ -125,6 +125,7 @@ export const SelectWrap = styled.div<{ $add?: boolean }>`
 
 export const Select = styled.select<{ $bare?: boolean; $add?: boolean }>`
   width: 100%;
+  min-height: 44px;
   padding: 10px 38px 10px 12px;
   font: inherit;
   font-size: 15px;
@@ -148,6 +149,7 @@ export const Select = styled.select<{ $bare?: boolean; $add?: boolean }>`
   ${(props) =>
     props.$add &&
     `
+    min-height: 44px;
     padding: 9px 12px 9px 32px;
     font-size: 14px;
     color: var(--dim);
@@ -156,7 +158,12 @@ export const Select = styled.select<{ $bare?: boolean; $add?: boolean }>`
 `
 
 export const LinkButton = styled.button<{ $danger?: boolean }>`
-  padding: 0 0 0 1px;
+  /* Reads as a link, but is sized as something a thumb has to hit: the underline sits
+     on the text while the padding gives the control its own height. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 2px;
   font: inherit;
   font-size: 13px;
   color: var(--dim);
@@ -173,8 +180,10 @@ export const LinkButton = styled.button<{ $danger?: boolean }>`
   ${(props) =>
     props.$danger &&
     `
-    display: block;
-    margin: var(--gap-block) auto 0;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: var(--gap-block) 0 0;
     text-align: center;
   `}
 `
@@ -228,6 +237,7 @@ export const OutlineButton = styled.button<{ $danger?: boolean; $wide?: boolean 
   align-items: center;
   justify-content: center;
   gap: 7px;
+  min-height: 44px;
   padding: 11px 12px;
   font: inherit;
   font-size: 14px;
@@ -289,6 +299,9 @@ export const GroupHead = styled.div`
 /** Sits in a card row, so its own border would be a box inside a box. */
 export const PlainInput = styled.input`
   flex: 1;
+  /* The row is tall enough already; this is about where a tap actually lands, which is
+     the input itself and not the padding around it. */
+  min-height: 44px;
   min-width: 0;
   padding: 0;
   font: inherit;
@@ -309,6 +322,7 @@ export const PlainInput = styled.input`
 /** The card already draws the border, so the control inside must not draw another. */
 export const BareInput = styled.input`
   width: 100%;
+  min-height: 44px;
   padding: 10px 12px;
   font: inherit;
   font-size: 15px;
@@ -324,13 +338,17 @@ export const BareInput = styled.input`
   }
 `
 
+/**
+ * `$small` shrinks what is drawn, not what can be hit: inside a dense list of entries
+ * the glyph wants to be quiet, but the target still has to be findable with a thumb.
+ */
 export const GhostButton = styled.button<{ $small?: boolean }>`
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  width: ${(props) => (props.$small ? '28px' : '40px')};
-  height: ${(props) => (props.$small ? '28px' : '40px')};
-  margin-right: ${(props) => (props.$small ? '0' : '4px')};
+  width: 44px;
+  height: 44px;
+  margin-right: ${(props) => (props.$small ? '-6px' : '4px')};
   color: var(--dim);
   background: transparent;
   border: 0;
@@ -341,26 +359,65 @@ export const GhostButton = styled.button<{ $small?: boolean }>`
     color: var(--text);
     background: color-mix(in srgb, var(--text) 10%, transparent);
   }
+
+  /* Drawn at the size the row wants, while the button keeps its full 44. */
+  ${(props) =>
+    props.$small &&
+    css`
+      &:hover {
+        background: none;
+      }
+
+      svg {
+        padding: 6px;
+        box-sizing: content-box;
+        border-radius: 8px;
+      }
+
+      &:hover svg {
+        background: color-mix(in srgb, var(--text) 10%, transparent);
+      }
+    `}
 `
 
-/** The switch, drawn from a checkbox so it keeps the control's own behaviour. */
+/**
+ * The switch, drawn from a checkbox so it keeps the control's own behaviour.
+ *
+ * The element is a finger-sized box; the pill and its knob are drawn inside it. Sizing
+ * the element to the pill instead gave a 26px-tall target and no way to grow it, since
+ * margin is not something you can hit.
+ */
 export const Switch = styled.input`
   position: relative;
+  flex: 0 0 auto;
   width: 44px;
-  height: 26px;
+  height: 44px;
   margin: 0;
   appearance: none;
   background: transparent;
-  border: 1px solid var(--line);
-  border-radius: 999px;
+  border: 0;
   cursor: pointer;
-  transition: background 150ms ease;
 
+  /* The track. */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 44px;
+    height: 26px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    transform: translateY(-50%);
+    transition: background 150ms ease;
+  }
+
+  /* The knob. */
   &::after {
     content: '';
     position: absolute;
     top: 50%;
-    left: 3px;
+    left: 4px;
     width: 18px;
     height: 18px;
     background: var(--text);
@@ -372,12 +429,12 @@ export const Switch = styled.input`
       opacity 150ms ease;
   }
 
-  &:checked {
+  &:checked::before {
     background: color-mix(in srgb, var(--text) 20%, transparent);
   }
 
   &:checked::after {
-    left: 21px;
+    left: 22px;
     opacity: 1;
   }
 `
@@ -416,6 +473,7 @@ export const GroupField = styled.div<{ $switch?: boolean; $wrap?: boolean }>`
 
   input[type='number'] {
     width: 100%;
+    min-height: 44px;
     padding: 7px 10px;
     font: inherit;
     font-size: 14px;
@@ -448,7 +506,7 @@ export const GroupField = styled.div<{ $switch?: boolean; $wrap?: boolean }>`
 
   ${OutlineButton} {
     flex: 1;
-    min-height: 34px;
+    min-height: 40px;
     padding: 6px 12px;
   }
 `
@@ -459,6 +517,7 @@ export const GroupLink = styled.button`
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  min-height: 44px;
   padding: 10px 12px;
   font: inherit;
   font-size: 13px;
