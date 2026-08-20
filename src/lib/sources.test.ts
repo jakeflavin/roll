@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { animals } from './data'
-import { createSource, resolveSourceId, sourceKeyFor } from './sources'
+import { createSource, resolveSourceId, sourceById, sourceKeyFor } from './sources'
 
 const config = { sourceId: 'number', min: 1, max: 10, bothCases: false }
 
@@ -121,5 +121,46 @@ describe('resolveSourceId', () => {
     expect(resolveSourceId('custom:a', lists)).toBe('custom:a')
     expect(resolveSourceId('custom:gone', lists)).toBe('number')
     expect(resolveSourceId('nonsense', lists)).toBe('number')
+  })
+})
+
+describe('maxLength', () => {
+  it('measures the number source from the wider end of its range', () => {
+    expect(createSource({ ...config, min: 1, max: 100 }).maxLength).toBe(3)
+    // A negative low end is wider than the high one, sign included.
+    expect(createSource({ ...config, min: -100, max: 9 }).maxLength).toBe(4)
+  })
+
+  it('measures a list from its longest entry', () => {
+    const source = createSource({ ...config, sourceId: 'custom:x' }, [
+      { id: 'custom:x', name: 'Names', items: ['Bo', 'Charlotte-Anne'] },
+    ])
+    expect(source.maxLength).toBe('Charlotte-Anne'.length)
+  })
+
+  it('counts an emoji as one character rather than two', () => {
+    const source = createSource({ ...config, sourceId: 'custom:x' }, [
+      { id: 'custom:x', name: 'Faces', items: ['🦊', '🐼'] },
+    ])
+    expect(source.maxLength).toBe(1)
+  })
+
+  it('reports a usable length for an empty pool, which is still asked to size itself', () => {
+    const source = createSource({ ...config, sourceId: 'custom:gone' }, [])
+    expect(source.size).toBe(0)
+    expect(source.maxLength).toBeGreaterThan(0)
+  })
+})
+
+describe('browsable pools', () => {
+  it('offers the states, whose size is the actual question about them', () => {
+    // Fifty, or fifty-one with DC, or fifty-six with the territories? The list is
+    // finite and arbitrary at the edges, so it is not obvious from the name.
+    expect(sourceById('state').options).toHaveLength(50)
+  })
+
+  it('leaves the two pools their own settings already describe without a list', () => {
+    expect(sourceById('number').options).toBeUndefined()
+    expect(sourceById('letter').options).toBeUndefined()
   })
 })

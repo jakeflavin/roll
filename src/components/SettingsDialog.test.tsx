@@ -69,12 +69,47 @@ describe('SettingsDialog', () => {
   })
 
   it('re-lands on the requested page each time it opens, not wherever it was left', async () => {
-    const { rerender } = render(<SettingsDialog {...props()} settings={{ ...defaultSettings, sourceIds: ['emoji'] }} />)
+    const { rerender } = render(
+      <SettingsDialog {...props()} settings={{ ...defaultSettings, sourceIds: ['emoji'] }} />,
+    )
     await userEvent.click(screen.getByRole('button', { name: /See all/ }))
     expect(heading()).toBe('Emoji')
 
-    rerender(<SettingsDialog {...props()} open={false} settings={{ ...defaultSettings, sourceIds: ['emoji'] }} />)
-    rerender(<SettingsDialog {...props()} open settings={{ ...defaultSettings, sourceIds: ['emoji'] }} />)
+    rerender(
+      <SettingsDialog
+        {...props()}
+        open={false}
+        settings={{ ...defaultSettings, sourceIds: ['emoji'] }}
+      />,
+    )
+    rerender(
+      <SettingsDialog {...props()} open settings={{ ...defaultSettings, sourceIds: ['emoji'] }} />,
+    )
     expect(heading()).toBe('Settings')
+  })
+})
+
+describe('opening on a list', () => {
+  const withList = () => ({
+    ...props(),
+    lists: [{ id: 'custom:e', name: 'My list', items: [] }],
+  })
+
+  it('lands on the editor for the list the caller named', () => {
+    render(<SettingsDialog {...withList()} openTo="list" openList="custom:e" />)
+    expect(heading()).toBe('My list')
+  })
+
+  it('puts the cursor in the field, since an empty list has nothing else to do', () => {
+    render(<SettingsDialog {...withList()} openTo="list" openList="custom:e" />)
+    expect(screen.getByLabelText('Add an entry')).toHaveFocus()
+  })
+
+  it('says the list is empty once, not twice', () => {
+    // "0 entries" used to sit directly above "Nothing here yet." — the same fact, one
+    // under the other.
+    render(<SettingsDialog {...withList()} openTo="list" openList="custom:e" />)
+    expect(screen.queryByText('0 entries')).not.toBeInTheDocument()
+    expect(screen.getByText(/Nothing here yet/)).toBeInTheDocument()
   })
 })

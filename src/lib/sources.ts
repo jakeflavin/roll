@@ -20,8 +20,9 @@ export type Source = {
   id: SourceId
   name: string
   /**
-   * The pool, for sources whose contents are worth browsing. Left off where the
-   * options are already obvious from the name — numbers, letters, and US states.
+   * The pool, for sources whose contents are worth browsing. Left off only where the
+   * name already describes the pool completely — a number range and a letter case do,
+   * so those two carry their own settings instead.
    */
   options?: string[]
 }
@@ -35,7 +36,7 @@ export const sources: [Source, ...Source[]] = [
   { id: 'animal', name: 'Animal', options: animals },
   { id: 'feeling', name: 'Feeling', options: feelings },
   { id: 'bodyPart', name: 'Body part', options: bodyParts },
-  { id: 'state', name: 'US state' },
+  { id: 'state', name: 'US state', options: states },
 ]
 
 export const defaultSource = sources[0]
@@ -87,6 +88,12 @@ export function resolveSourceId(sourceId: SourceId, lists: CustomList[]): Source
 export type PickSource = {
   /** How many values the pool holds; zero means there is nothing to pick. */
   size: number
+  /**
+   * The longest value this pool can give, in characters. The stage sizes its type from
+   * what a pool *could* produce rather than from what it just did, so the value does
+   * not change size on every roll.
+   */
+  maxLength: number
   pick: () => string
   /** A value not in `drawn`, or null when the pool has nothing left to give. */
   pickExcluding: (drawn: Set<string>) => string | null
@@ -118,6 +125,8 @@ function fromList(list: string[]): PickSource {
   ]
   return {
     size: list.length,
+    // Counted by code point, so an emoji is one character rather than two.
+    maxLength: list.reduce((longest, value) => Math.max(longest, [...value].length), 1),
     pick: () => sample(list),
     pickExcluding: (drawn) => {
       const left = list.filter((value) => !drawn.has(value))
@@ -138,6 +147,7 @@ export function createSource(
     if (!list || list.items.length === 0) {
       return {
         size: 0,
+        maxLength: 1,
         pick: () => '',
         pickExcluding: () => null,
         scrambleChar: () => ' ',
@@ -175,6 +185,8 @@ export function createSource(
       const draw = () => String(Math.floor(Math.random() * size) + lo)
       return {
         size,
+        // Both ends, because a range can run negative and "-100" is wider than "99".
+        maxLength: Math.max(String(lo).length, String(hi).length),
         pick: draw,
         pickExcluding: (drawn) => {
           if (drawn.size >= size) return null

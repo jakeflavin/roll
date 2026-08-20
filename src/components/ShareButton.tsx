@@ -18,7 +18,7 @@ export function ShareButton({ url }: ShareButtonProps) {
     // button; the clipboard is the fallback everywhere else.
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'Roll', url })
+        await navigator.share({ title: 'Hat', url })
         return
       } catch {
         // Dismissing the sheet rejects, and is not a failure worth reporting.
@@ -37,10 +37,7 @@ export function ShareButton({ url }: ShareButtonProps) {
   }
 
   return (
-    <IconButton
-      onClick={share}
-      aria-label={copied ? 'Link copied' : 'Share these settings'}
-    >
+    <IconButton onClick={share} aria-label={copied ? 'Link copied' : 'Share these settings'}>
       {copied ? <Check size={18} /> : <Share size={18} />}
     </IconButton>
   )

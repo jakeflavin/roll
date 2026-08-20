@@ -1,6 +1,18 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Entries } from './SessionDialog.styled'
-import { BareInput, GhostButton, Group, GroupCard, GroupField, GroupHead, GroupLink, Hint, LinkButton, PlainInput, VisuallyHidden } from './drawer.styled'
+import {
+  BareInput,
+  GhostButton,
+  Group,
+  GroupCard,
+  GroupField,
+  GroupHead,
+  GroupLink,
+  Hint,
+  LinkButton,
+  PlainInput,
+  VisuallyHidden,
+} from './drawer.styled'
 import { Plus, Upload, X } from 'lucide-react'
 import { cleanItems, parseCsv, type CustomList } from '@/lib/lists'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -16,6 +28,18 @@ export function ListEditor({ list, onUpdate, onDelete }: ListEditorProps) {
   const [status, setStatus] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const draftRef = useRef<HTMLInputElement>(null)
+
+  // Arriving at an empty list, the only useful next move is to type something, so the
+  // cursor starts there rather than costing a deliberate navigation another tap. A list
+  // with entries is more often opened to read or prune it, so it is left alone.
+  const empty = list.items.length === 0
+  useEffect(() => {
+    if (empty) draftRef.current?.focus()
+    // Only on arrival: refocusing as the list empties would steal the cursor from the
+    // remove button the user is working down.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const addItems = (raw: string) => {
     // Commas and newlines both separate, so a pasted block of names lands as a block
@@ -70,6 +94,7 @@ export function ListEditor({ list, onUpdate, onDelete }: ListEditorProps) {
 
         <GroupField>
           <PlainInput
+            ref={draftRef}
             value={draft}
             placeholder="Add an entry"
             aria-label="Add an entry"
@@ -102,17 +127,22 @@ export function ListEditor({ list, onUpdate, onDelete }: ListEditorProps) {
       {status && <Hint>{status}</Hint>}
 
       <Group>
+        {/* At zero the count and the hint said the same thing twice, one under the
+            other. The heading names the section; the hint reports the state. */}
         <legend>
-          {list.items.length} {list.items.length === 1 ? 'entry' : 'entries'}
+          {empty
+            ? 'Entries'
+            : `${list.items.length} ${list.items.length === 1 ? 'entry' : 'entries'}`}
         </legend>
-        {list.items.length === 0 ? (
-          <Hint>Nothing here yet.</Hint>
+        {empty ? (
+          <Hint>Nothing here yet. Type one above, or upload a CSV.</Hint>
         ) : (
           <Entries>
             {list.items.map((item) => (
               <li key={item}>
                 <span>{item}</span>
-                <GhostButton $small
+                <GhostButton
+                  $small
                   onClick={() => onUpdate({ items: list.items.filter((i) => i !== item) })}
                   aria-label={`Remove ${item}`}
                 >
