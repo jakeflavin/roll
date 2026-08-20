@@ -1,3 +1,6 @@
 # Repo-wide Prettier reformat. Skipped by:
 #   git config blame.ignoreRevsFile .git-blame-ignore-revs
 174326975fd47bf71b3f46ffff3b1b6c3d92b903
+
+# Prettier over the files that had drifted from it.
+5cbd49ccc0bca4136e7083a6d6571d73b0d57d81
