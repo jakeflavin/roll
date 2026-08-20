@@ -1,3 +1,17 @@
+/*
+ * The ground, and only the ground. Every other token this app uses is written onto
+ * <html> by App.tsx when the theme resolves — but that happens on mount, and until it
+ * does an undefined --bg paints white. These two are the default theme's base colours,
+ * so the first frame is Noir rather than a flash. Keep them in step with `defaultTheme`
+ * in lib/themes.ts; nothing else belongs here.
+ */
+:root {
+  color-scheme: dark;
+
+  --bg: #0d0d11;
+  --text: #eceaf2;
+}
+
 *,
 *::before,
 *::after {
