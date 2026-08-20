@@ -39,3 +39,19 @@ body {
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
 }
+
+/*
+ * Paper is the one surface with no theme. The ground is still part of the ground, so
+ * it belongs here: a printer given the Noir gradient lays down a full page of ink for
+ * one word, and every colour the app derives from the theme goes with it.
+ */
+@media print {
+  html,
+  body,
+  #root {
+    height: auto;
+    overflow: visible;
+    color: #000;
+    background: #fff;
+  }
+}

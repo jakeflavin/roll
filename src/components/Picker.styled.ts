@@ -21,6 +21,11 @@ export const Actions = styled.div`
   justify-content: space-between;
   gap: 16px;
 
+  /* Controls do nothing on paper. */
+  @media print {
+    display: none;
+  }
+
   /* Beside the roll button these are the row a thumb reaches for, so they are larger than
      the same button is anywhere else. Interpolated rather than written as a descendant
      selector, which stops matching the moment the class goes. */
@@ -49,6 +54,15 @@ export const Slots = styled.div`
   /* Makes the stage a query container, so a value can be sized against the height it
      actually has rather than against the viewport. Every cqh below resolves here. */
   container-type: size;
+
+  /* A printed page has no fixed height to fit into, and a container query with none
+     resolves every cqh to zero. */
+  @media print {
+    container-type: normal;
+    flex: none;
+    gap: 28px;
+    padding: 24pt 0;
+  }
 `
 
 export const Slot = styled.div`
@@ -67,6 +81,11 @@ export const Label = styled.p`
   color: var(--dim);
   letter-spacing: 0.14em;
   text-transform: uppercase;
+
+  @media print {
+    font-size: 10pt;
+    color: #444;
+  }
 `
 
 export const SlotStage = styled.div`
@@ -128,6 +147,13 @@ export const Value = styled(motion.div)`
      unbroken 40-character entry has no space to break at. */
   max-width: 100%;
   overflow-wrap: anywhere;
+
+  /* Paper has no theme: the ground does not print, so the ink must not be the ground's
+     ink. Sized to the page rather than to a screen the printer cannot see. */
+  @media print {
+    font-size: 48pt !important;
+    color: #000;
+  }
 `
 
 /**
@@ -146,4 +172,8 @@ export const Message = styled.p`
   text-align: center;
   text-wrap: balance;
   user-select: none;
+
+  @media print {
+    color: #000;
+  }
 `
