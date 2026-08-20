@@ -213,7 +213,7 @@ export function RevealCloud({
   return (
     <RevealCanvas
       ref={ref}
-        aria-hidden="true"
+      aria-hidden="true"
       style={{
         width,
         height,

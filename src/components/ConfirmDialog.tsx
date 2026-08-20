@@ -31,9 +31,7 @@ export function ConfirmDialog({
       <h2>{title}</h2>
       <p>{body}</p>
       <ButtonRow>
-        <OutlineButton onClick={onCancel}>
-          Cancel
-        </OutlineButton>
+        <OutlineButton onClick={onCancel}>Cancel</OutlineButton>
         <OutlineButton $danger onClick={onConfirm}>
           {confirmLabel}
         </OutlineButton>

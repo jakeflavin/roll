@@ -1,5 +1,15 @@
 import { useRef, useState } from 'react'
-import { FieldLabel, FieldValue, GroupField, Hint, ImageThumb, OutlineButton, SegmentButton, Segmented as SegmentedRow, VisuallyHidden } from './drawer.styled'
+import {
+  FieldLabel,
+  FieldValue,
+  GroupField,
+  Hint,
+  ImageThumb,
+  OutlineButton,
+  SegmentButton,
+  Segmented as SegmentedRow,
+  VisuallyHidden,
+} from './drawer.styled'
 import { IconButton } from './buttons.styled'
 import { ImagePlus, Trash2 } from 'lucide-react'
 import type { CustomTheme } from '@/lib/themes'
@@ -117,10 +127,7 @@ export function CustomThemeControls({ custom, onChange }: CustomThemeControlsPro
                 aria-hidden="true"
               />
             )}
-            <OutlineButton
-              onClick={() => fileRef.current?.click()}
-              disabled={working}
-            >
+            <OutlineButton onClick={() => fileRef.current?.click()} disabled={working}>
               <ImagePlus size={15} aria-hidden="true" />
               {working ? 'Working…' : custom.image ? 'Replace' : 'Choose image'}
             </OutlineButton>
@@ -151,7 +158,11 @@ export function CustomThemeControls({ custom, onChange }: CustomThemeControlsPro
         </>
       )}
 
-      {error && <Hint $inset $error>{error}</Hint>}
+      {error && (
+        <Hint $inset $error>
+          {error}
+        </Hint>
+      )}
 
       <GroupField $wrap>
         <Segmented

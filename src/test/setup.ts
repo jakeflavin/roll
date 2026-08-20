@@ -17,7 +17,7 @@ if (!HTMLDialogElement.prototype.showModal) {
     if (!this.open) return
     this.open = false
     if (value !== undefined) this.returnValue = value
-    this.dispatchEvent(new Event("close"))
+    this.dispatchEvent(new Event('close'))
   }
 }
 

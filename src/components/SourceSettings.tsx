@@ -1,5 +1,18 @@
 import { ChevronDown, ChevronRight, Plus, X } from 'lucide-react'
-import { AddRow, GhostButton, Group, GroupCard, GroupField, GroupHead, GroupLink, LinkButton, Select, SelectArrow, SelectWrap, Switch } from './drawer.styled'
+import {
+  AddRow,
+  GhostButton,
+  Group,
+  GroupCard,
+  GroupField,
+  GroupHead,
+  GroupLink,
+  LinkButton,
+  Select,
+  SelectArrow,
+  SelectWrap,
+  Switch,
+} from './drawer.styled'
 import { allSources, sources, type SourceId } from '@/lib/sources'
 import { isCustomId, type CustomList } from '@/lib/lists'
 import type { Settings } from '@/hooks/useSettings'
@@ -116,7 +129,8 @@ export function SourceSettings({
           <GroupCard key={`${id}-${i}`}>
             <GroupHead>
               <SelectWrap>
-                <Select $bare
+                <Select
+                  $bare
                   value={id}
                   onChange={(e) =>
                     onChange({
@@ -171,7 +185,8 @@ export function SourceSettings({
         <AddRow>
           {unused.length > 0 && (
             <SelectWrap $add>
-              <Select $add
+              <Select
+                $add
                 value=""
                 onChange={(e) =>
                   e.target.value &&

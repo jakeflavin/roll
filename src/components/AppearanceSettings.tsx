@@ -1,5 +1,14 @@
 import { History, Keyboard } from 'lucide-react'
-import { AnimationGrid, AnimationName, AnimationOption, ThemeGrid, ThemeName, ThemeOption, ThemePreview, ThemeSwatch } from './AppearanceSettings.styled'
+import {
+  AnimationGrid,
+  AnimationName,
+  AnimationOption,
+  ThemeGrid,
+  ThemeName,
+  ThemeOption,
+  ThemePreview,
+  ThemeSwatch,
+} from './AppearanceSettings.styled'
 import { ButtonRow, Divider, Group, GroupCard, OutlineButton } from './drawer.styled'
 import { buildCustomTheme, CUSTOM_THEME_ID, themes, type CustomTheme } from '@/lib/themes'
 import { animations } from '@/lib/animations'
@@ -51,9 +60,7 @@ export function AppearanceSettings({
               onClick={() => onChange({ ...settings, themeId: t.id })}
               aria-pressed={t.id === settings.themeId}
             >
-              <ThemeSwatch
-                style={{ background: t.background, borderColor: t.border }}
-              >
+              <ThemeSwatch style={{ background: t.background, borderColor: t.border }}>
                 {/* Two digits so the preview shows the theme's tracking, not just its face. */}
                 <ThemePreview
                   style={{
@@ -74,9 +81,7 @@ export function AppearanceSettings({
             onClick={() => onChange({ ...settings, themeId: CUSTOM_THEME_ID })}
             aria-pressed={settings.themeId === CUSTOM_THEME_ID}
           >
-            <ThemeSwatch
-              style={{ background: custom.background, borderColor: custom.border }}
-            >
+            <ThemeSwatch style={{ background: custom.background, borderColor: custom.border }}>
               <ThemePreview
                 style={{
                   fontFamily: custom.displayFont,
@@ -134,12 +139,7 @@ export function AppearanceSettings({
             </OutlineButton>
           )}
         </ButtonRow>
-        <BackupControls
-          settings={settings}
-          session={session}
-          lists={lists}
-          onRestore={onRestore}
-        />
+        <BackupControls settings={settings} session={session} lists={lists} onRestore={onRestore} />
       </Group>
     </>
   )
